@@ -1,0 +1,1393 @@
+﻿comUtil = {};
+
+comUtil.install = function(thisform)
+{
+	for (var ii in comUtil)
+	{
+		if (ii != "install")
+		{
+			thisform[ii] = comUtil[ii];
+		}
+	}
+}
+
+/*
+===============================================================================
+== Util관련 공통함수들은 여기에 작성한다.
+===============================================================================
+● gfn_decode    : 그리드에서 expression으로 표현할때 decode 문처럼 사용할 수 있는 기능.
+★ gfn_nvl       : 입력값이 null인 경우에 지정한 값으로 반환.
+● gfn_iif       : 조건에 따른 Value 처리
+● gfn_casewhen  : 오라클 Case When 조건절을 흉내낸 함수
+
+● gfn_isNull    : 입력값이 null에 해당하는 경우 모두를 한번에 체크한다.
+● gfn_isNotNull : 입력값이 null에 해당하는 경우 모두를 한번에 체크한다. * not
+
+● gfn_lpad    : 왼쪽 채우기 함수
+● gfn_rpad    : 오른쪽 채우기 함수
+● gfn_left    : 문자열의 왼쪽부분을 지정한 길이만큼 Return 한다.
+● gfn_right   : 문자열의 오른쪽부분을 지정한 길이만큼 Return 한다.
+● gfn_replace : 입력된 문자열의 일부분을 다른 문자열로 치환하는 함수
+● gfn_trim    : 입력된 문자열의 좌우측 공백을 제거한 문자열을 구함.
+
+● gfn_round : 반올림 함수. nexacro.round(4.185, 2) != 4.19
+
+● gfn_getMainFrameWidth  : mainframe의 가로 사이즈를 가져옵니다.
+● gfn_getMainFrameHeight : mainframe의 세로 사이즈를 가져옵니다.
+
+
+
+
+● gfn_isHTML5           : 실행되는 환경을 체크(Runtime/HTML5)
+● gfn_checkURL          : 입력값이 URL Type인지 체크하는 함수
+● gfn_checkEmail        : 입력값이 e-mail Type인지 체크하는 함수
+● gfn_checkPhone        : 입력값이 전화번호 format 인지 체크하는 함수
+● gfn_isNum             : 문자열이 숫자형식에 맞는지 여부 체크
+● gfn_isAlpha           : 문자열이 알파벳(a~z, A~Z)만으로 구성되어 있는지 체크
+● gfn_isAlNum           : 문자열이 알파벳(a~z, A~Z), 숫자만으로 구성되어 있는지 체크
+● gfn_isKor             : 문자열이 한글로만 구성되어 있는지 체크
+● gfn_getRandom         : 정수인 nStart ~ nEnd의 범위에 있는 숫자에 대하여 random값을 return한다.
+● gfn_setDistinct       : Array에 있는 값들을 Distinct(중복제거)한다.
+● gfn_checkDate8        : 입력값이 날짜 형태인지 체크하는 함수(8자리)
+● gfn_checkDate10       : 입력값이 날짜 형태인지 체크하는 함수(10자리)
+● gfn_getFileExt        : 파일 확장자를 가져온다.
+● gfn_htmlToChars       : html형식의 문자열에서 태그문자를 특수문자로 변형
+● gfn_specToChars       : 특수문자가 들어있는 문자열에서 html형식의 문자로 변형
+● gfn_getDomainText     : 메세지 값을 문자열 치환하여 메세지 내용을 조회
+● gfn_getObjFont        : Font Object 생성 반환
+● gfn_isEmpty           : 입력값이 Null이거나 빈값인지 체크한다.
+● gfn_getNum            : 문자열이 숫자형식에 맞으면 숫자값을 반환
+● gfn_nullToEmpty       : NULL 일 경우 빈 값을 리턴한다.
+● gfn_toString          : 입력값을 String으로 변경한다.
+● gfn_length            : 입력값 형태에 따라서 길이 또는 범위를 구하는 함수
+● gfn_getByteLength     : 스트링의 자릿수를 Byte 단위로 환산하여 알려준다 영문, 숫자는 1Byte이고 한글은 3Byte이다.(자/모 중에 하나만 있는 글자도 3Byte이다.)
+● gfn_lengthByte        : 문자 전체 길이를 계산(문자,숫자,특수문자 : 1 로 Count, 그외 한글/한자 : 2 로 count 되어 합산한다.
+● gfn_isMaxLengh        : 스트링자릿수를 체크하여 제한한다.
+● gfn_indexOf           : 전체 문자열 중 특정 문자열이 포함된 위치를 반납
+● gfn_numFormat         : 입력된 실수를 문자열 표현법으로 표현하는 함수
+● gfn_getFormat         : 문자 포맷 형식 변환 ( 해당 문자는 포맷에서 @ 사용)
+● gfn_setComma          : 숫자에 ","를 집어넣기
+● gfn_stripBlank        : 문자열 중 "=" 좌우의 빈공백을 제거하는 함수(Transaction 에서 사용)
+● gfn_split             : 특정 문자열을 기준으로 전체 문자열을 나누어서 하나의 배열(Array)로 만들어 반납하는 함수
+● gfn_split2            : 입력된 문자열을 strDelimiter1과 strDelimiter2로 2 번 Parsing 한 2차원 배열을 Return
+● gfn_findArray         : 1차원 배열에서 입력된 문자열이 있는 index를 반환
+● gfn_findArray2        : 2차원 배열에서 입력된 문자열이 있는 index를 반환
+★ gfn_getCamel          : 대문자 "_"로 구분된 문자를 카멜타입으로 반환
+★ gfn_isValidObject     : 객체가 있는지 없는지 여부 판단하여 반환
+● gfn_setComboValue     : 콤보에 값 추가 (전체,빈값 등)
+
+● gfn_getUserInfo       : 사용자아이디 가져오기
+
+● gfn_stringFormat      : 문자열에서 포맷된 부분를 파라메타로 치환한다.
+● gfn_bachScheSearch    : 기간관리 COMM710 테이블정보조회(현재날짜가 STDT, EDDT 날짜 사이에 있는 YMST를 리턴)
+● gfn_fileDelete(strApndFileId,strApndFilePath,strSvrApndFileNm , bMessageView)
+● gfn_callback(strServiceId, strErrorCode, strErrorMsg)
+● gfn_cookieSet         : 쿠키 저장
+● gfn_cookieGet         : 쿠키 불러오기
+● gfn_cookieDel         : 쿠키 삭제
+ */
+
+/**
+ * @class Grid에서 expression으로  표현할때 decode 문처럼 사용할 수 있는 기능.
+ * @param decode(strVal, "test", true, false);
+ * @return varRtnValue 로 decode 조건에 맞는 값 리턴.
+ */
+comUtil.gfn_decode = function ()
+{
+	var ii;
+
+	var rtnValue = null;
+
+	// arguments는 무조건 짝수로 들어와야 함.
+	if (arguments.length % 2 != 0)
+	{
+		alert("함수에 사용된 arguments 값이 짝수가 아닙니다.");
+	}
+
+	// arguments는 무조건 짝수로 들어와야 함.
+	if (arguments.length < 4)
+	{
+		alert("함수의 arguments는 최소 4개를 입력하세요.");
+	}
+
+	for (ii = 1; ii < arguments.length; ii++)
+	{
+		if (ii % 2 == 1) // 홀수번째는 조건입니다.
+		{
+			if (arguments[ii] == arguments[0]) // 0번째 조건과 값은 값이라면 중지합니다.
+			{
+				return arguments[ii + 1];
+			}
+			else if (ii == arguments.length - 1) // 마지막 값이라면 중지합니다.
+			{
+				return arguments[ii];
+			}
+		}
+	}
+}
+
+/**
+ * @class 입력값이 null에 해당하는 경우 모두를 한번에 체크한다.
+ * @param Val : 체크할 문자열(예 : null 또는 undefined 또는 "" 또는 "abc")
+ * @return Boolean,	Val이 undefined, null, NaN, "", Array.length = 0인 경우 = true
+ *					이외의 경우 = false
+ */
+comUtil.gfn_nvl = function (val, val2)
+{
+	var rtnVal = (this.gfn_isNull(val)) ? val2 : val;
+	
+	return rtnVal;
+}
+
+/**
+ * @class 입력값이 null에 해당하는 경우 모두를 한번에 체크한다.
+ * @param Val : 체크할 문자열(예 : null 또는 undefined 또는 "" 또는 "abc")
+ * @return Boolean,	Val이 undefined, null, NaN, "", Array.length = 0인 경우 = true
+ *					이외의 경우 = false
+ */
+comUtil.gfn_isNotNull = function (val)
+{
+	return this.gfn_isNull(val) == false;
+}
+
+comUtil.gfn_isNull = function (val)
+{
+	// 전달받은 변수를 문자열로 변경합니다.
+	var sValue = new String(val);
+
+	// 변수값 비교
+	if (
+		   val === undefined
+		|| val ==  undefined
+		|| val ==  null     
+			   
+		// 문자열로 변경하여 널값 비교
+		|| sValue           == null
+		|| sValue.valueOf() == "undefined"
+		|| sValue.valueOf() == "null"     
+		|| sValue           == "NaN"
+		|| sValue.trim()    == ""  
+		|| sValue.length    == 0   ) return true;
+
+	return false;
+}
+
+/**
+ * @class 왼쪽 채우기 함수
+ * @param sValue 	- 대상문자열
+ * @param nLength 	- 자리수
+ * @param Char 		- 채울 문자
+ * @return String
+ * @memberOf commString
+ */
+comUtil.gfn_lpad = function (sValue, nLength, sChar)
+{
+	if (new String(sValue).valueOf() == "undefined")
+	{
+		sValue = "";
+	}
+	
+	if (this.gfn_isNull(sValue))
+	{
+		sValue = "";
+	}
+		
+
+	var strRetVal = new String(sValue);
+	var strChar = "";
+	var nIteration = (nLength - this.gfn_getByteLength(strRetVal)) / sChar.length + 1;
+
+	for (var i = 0; i < nIteration; i++)
+	{
+		strChar = sChar + strChar;
+	}
+
+	return (this.gfn_right(strChar + strRetVal, nLength));
+}
+
+/**
+ * @class 오른쪽 채우기 함수
+ * @param sValue 	- 대상문자열
+ * @param nLength 	- 자리수
+ * @param Char 		- 채울 문자
+ * @return String
+ * @memberOf commString
+ */
+comUtil.gfn_rpad = function (sValue, nLength, Char)
+{
+	if (new String(sValue).valueOf() == "undefined")
+	{
+		sValue = "";
+	}
+	
+	if (this.gfn_isNull(sValue))
+	{
+		sValue = "";
+	}
+
+	var strRetVal = new String(sValue);
+	var nIteration = (nLength - this.gfn_getByteLength(strRetVal)) / Char.length + 1;
+
+	for (var i = 0; i < nIteration; i++)
+	{
+		strRetVal = strRetVal + Char;
+	}
+
+	return this.gfn_left(strRetVal, nLength);
+}
+
+/**
+ * @class 문자열의 왼쪽부분을 지정한 길이만큼 Return 한다.
+ * @param val(왼쪽부분을 얻어올 원본 문자열)
+ * @param nSize - 얻어올 크기. [Default Value = 0]
+ * @return String 왼쪽 부분이 얻어진 문자열.
+ */
+comUtil.gfn_left = function (val, nSize)
+{
+	return this.gfn_toString(val).substr(0, nSize);
+}
+
+/**
+ * @class 문자열의 오른쪽부분을 지정한 길이만큼 Return 한다.
+ * @param val(오른부분을 얻어올 원본 문자열)
+ * @param nSize - 얻어올 크기. [Default Value = 0]
+ * @return String 오른쪽 부분이 얻어진 문자열.
+ */
+comUtil.gfn_right = function (val, nSize)
+{
+	var nStart = this.gfn_toString(val).length;
+	var nEnd = Number(nStart) - Number(nSize);
+	var rtnVal = val.substring(nStart, nEnd);
+
+	return rtnVal;
+}
+
+/**
+ * @class 문자열의 중간부분을 지정한 길이만큼 Return 한다.
+ * @param val(원본 문자열)
+ * @param nStart - 시작 위치.
+ * @param nSize  -   올 크기.
+ * @return String 오른쪽 부분이 얻어진 문자열.
+ */
+comUtil.gfn_mid = function (val, nStart, nSize)
+{
+	var rtnVal = val.substr(nStart, nSize);
+
+	return rtnVal;
+}
+
+/**
+ * @class 입력된 문자열의 일부분을 다른 문자열로 치환하는 함수
+ * @param strString 원본 문자열.
+ * @param strOld    원본 문자열에서 찾을 문자열.
+ * @param strNew    새로 바꿀 문자열.
+ * @return String 대체된 문자열
+ */
+comUtil.gfn_replace = function (val, strOld, strNew)
+{
+	val = this.gfn_toString(val);
+	val = val.split(eval("/" + strOld + "/g")).join(strNew);
+	// val = val.split(strOld).join(strNew);
+
+	if (val.indexOf(strOld) > -1)
+	{
+		return this.gfn_replace(val, strOld, strNew);
+	}
+	else
+	{
+		return val;
+	}
+}
+
+/**
+ * @class 입력된 문자열의 좌우측 공백을 제거한 문자열을 구함.
+ * @param arg(좌우측 공백문자를 제거하려는 문자열)
+ * @return {String} 입력된 문자열에서 좌우측 공백이 제거된 문자열
+ * @example
+ */
+comUtil.gfn_trim = function (sValue)
+{
+	if (this.gfn_isNull(sValue))
+	{
+		return "";
+	}
+
+	var retVal = (new String(sValue)).replace(/^\s+|\s+$/g, '');
+
+	return retVal;
+}
+
+/**
+ * @class  입력된
+ * @param  소수점 있는 값, 반올림할 위치( > 0 == 소수 반올림,  < 0 == 정수 반올림)
+ * @return {String} 입력된 문자열에서 좌우측 공백이 제거된 문자열
+ * @example
+ */
+comUtil.gfn_round = function(nValue, nPosition)
+{
+	var nResult = nValue;
+
+	// 반올림할 대상의 위치가 소수점이라면... (4.455, 2)
+	if (nPosition > 0)
+	{
+		var iMultiply = parseInt(this.gfn_rpad("1", nPosition + 1, "0"));
+
+		nResult = Math.round((nValue * iMultiply).toFixed(nPosition)) / iMultiply;
+	}
+	else if (nPosition < 0)
+	{
+		nResult = nexacro.round(nValue, nPosition);
+	}
+
+	return nResult;
+}
+
+/**
+ * @class
+ * @param
+ * @return {int} mainframe width
+ * @example
+ */
+comUtil.gfn_getMainFrameWidth = function (margin)
+{
+	return parseInt(nexacro.getApplication().mainframe.getOffsetWidth()) - this.gfn_nvl(margin, 0);
+}
+
+/**
+ * @class
+ * @param
+ * @return {int} mainframe height
+ * @example
+ */
+comUtil.gfn_getMainFrameHeight = function (margin)
+{
+	return parseInt(nexacro.getApplication().mainframe.getOffsetHeight()) - this.gfn_nvl(margin, 0);
+}
+
+/* comLib에 옮겨짐.
+this.gfn_viewPDFJS = function(APdfUrl, AFileUrl)
+{
+	var fv_arg = {
+			pdfUrl: APdfUrl
+			, fileUrl: AFileUrl
+		}
+
+	var iWidth = this.gfn_getMainFrameWidth(80);
+	var iHeight = this.gfn_getMainFrameHeight(80);
+	var fv_options = "left=-1,top=-1,width=" + iWidth + ",height=" + iHeight + ",title=true,titletext=PDF VIEWER,modeless=false";
+
+	this.gfn_openPopup("ID_PDF", "UTIL::COM_PDFJS.xfdl", fv_arg, fv_options, "fn_callbackPopup");
+}
+*/
+/**
+ * @class 입력값이 e-mail Type인지 체크하는 함수
+ * @param strValue(String)
+ * @return true = 입력값이 email형태일 경우
+ */
+comUtil.gfn_checkEmail = function (strValue)
+{
+	if (this.gfn_isNull(strValue))
+	{
+		return false;
+	}
+
+	var nIndexOfAt = strValue.indexOf("@");
+	var nIndexOfDot = strValue.indexOf(".");
+	var nLength = strValue.length;
+
+	// "@" 이 하나도 없거나 맨 끝에 위치한  경우
+	if (nIndexOfAt <= 0 || nIndexOfAt == nLength)
+	{
+		return false;
+	}
+	// "." 이 하나도 없거나 맨 끝에 위치한 경우
+	if (nIndexOfDot <= 0 || nIndexOfDot == nLength)
+	{
+		return false;
+	}
+	// "@"이 두개 이상 존재하는 경우
+	if (strValue.indexOf("@", nIndexOfAt + 1) != -1)
+	{
+		return false;
+	}
+	// ".@" 인 경우 또는 "@."인 경우
+	if (strValue.substr(nIndexOfAt - 1, 1) == "." || strValue.substr(nIndexOfAt + 1, 1) == ".")
+	{
+		return false;
+	}
+	// "@" 이후에 "."이 존재하지 않는 경우
+	if (strValue.indexOf(".", (nIndexOfAt + 2)) == -1)
+	{
+		return false;
+	}
+	// 공백문자가 존재하는 경우
+	if (strValue.indexOf(" ") != -1)
+	{
+		return false;
+	}
+	return true;
+}
+
+/**
+ * @class 입력값이 전화번호 format인지 체크하는 함수
+ * @param strValue(String)
+ * @return true = 입력값이 전화번호 형태일 경우
+ */
+comUtil.gfn_checkPhone = function (strValue)
+{
+	// null 이거나 "-"이 존재하지 않는 경우
+	if (this.gfn_isNull(strValue) || (!this.gfn_isNull(strValue) && strValue.indexOf("-") == -1))
+	{
+		return false;
+	}
+	else if (strValue.indexOf(".") >= 0)
+	{
+		return false;
+	}
+	else
+	{
+		// "-" 사이의 값이 숫자가 아닌 경우
+		var arrNumbers = strValue.split("-");
+		for (var i = 0; i < arrNumbers.length; i++)
+		{
+			if (!nexacro.isNumeric(arrNumbers[i]))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+/**
+ * @class 문자열이 숫자형식에 맞는지 여부 체크
+ * @param sNum: 체크할 문자열숫자 (예 : "-1234.56") (단, ","가 들어있으면 안 됨)
+ * @return - 숫자형식에 맞는경우 = true
+ *		   - 숫자형식에 맞지않는 경우 = false
+ */
+comUtil.gfn_isNum = function (sNum)
+{
+	var c;
+	var point_cnt = 0;
+	var ret = true;
+
+	if (this.gfn_isNull(sNum))
+	{
+		return false;
+	}
+
+	for (var i = 0; i < sNum.length; i++)
+	{
+		c = sNum.charAt(i);
+		if (i == 0 && (c == "+" || c == "-"))
+		{
+			
+		}
+		else if (c >= "0" && c <= "9")
+		{
+			
+		}
+		else if (c == ".")
+		{
+			point_cnt++;
+			
+			if (point_cnt > 1)
+			{
+				ret = false;
+				break;
+			}
+		}
+		else
+		{
+			ret = false;
+			break;
+		}
+	}
+	return ret;
+}
+
+/**
+ * @class 문자열이 알파벳(a~z, A~Z)만으로 구성되어 있는지 체크
+ * @param sVal: 체크할 문자열 (예 : "aAzZ")
+ * @return - 알파벳만 있는경우 = true
+ *		   - 알파벳이 아닌 글자가 하나라도 있는 경우 = false
+ *		   - 숫자형식에 맞지않는 경우 = false
+ */
+comUtil.gfn_isCurrency = function (sNum)
+{
+	var c;
+	var point_cnt = 0;
+	var ret = true;
+
+	if (this.gfn_isNull(sNum))
+	{
+		return false;
+	}
+
+	for (var i = 0; i < sNum.length; i++)
+	{
+		c = sNum.charAt(i);
+		if (i == 0 && (c == "+" || c == "-"))
+		{}
+		else if ((c >= "0" && c <= "9") || c == ",")
+		{}
+		else if (c == ".")
+		{
+			point_cnt++;
+			if (point_cnt > 1)
+			{
+				ret = false;
+				break;
+			}
+		}
+		else
+		{
+			ret = false;
+			break;
+		}
+	}
+	return ret;
+}
+
+
+/**
+ * @class 문자열이 알파벳(a~z, A~Z)만으로 구성되어 있는지 체크
+ * @param sVal: 체크할 문자열 (예 : "aAzZ")
+ * @return - 알파벳만 있는경우 = true
+ *		   - 알파벳이 아닌 글자가 하나라도 있는 경우 = false
+ */
+comUtil.gfn_isAlpha = function (sVal)
+{
+	sVal = this.gfn_toString(sVal);
+
+	if (this.gfn_isNull(sVal))
+	{
+		return false;
+	}
+
+	if (sVal.search("[^A-Za-z]") >= 0)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+/**
+ * @class 문자열이 알파벳(a~z, A~Z), 숫자만으로 구성되어 있는지 체크
+ * @param sVal: 체크할 문자열 (예 : "aAzZ09")
+ * @return - 알파벳, 숫자만 있는경우 = true
+ *		   - 알파벳, 숫자가 아닌 글자가 하나라도 있는 경우 = false
+ */
+comUtil.gfn_isAlNum = function (sVal)
+{
+	if (this.gfn_isNull(sVal))
+	{
+		return false;
+	}
+
+	if (sVal.search("[^A-Za-z0-9]") >= 0)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+/**
+ * @class 문자열이 한글로만 구성되어 있는지 체크
+ * @param sVal: 체크할 문자열 (예 : "가나다")
+ * @return - 한글만 있는경우 = true
+ *		   - 한글이 아닌 글자가 하나라도 있는 경우 = false
+ */
+comUtil.gfn_isKor = function (sVal)
+{
+	if (this.gfn_isNull(sVal))
+	{
+		return false;
+	}
+	for (var i = 0; i < sVal.length; i++)
+	{
+		if (!(
+			   (sVal.charCodeAt(i) >  0x3130 && sVal.charCodeAt(i) <  0x318F)
+			|| (sVal.charCodeAt(i) >= 0xAC00 && sVal.charCodeAt(i) <= 0xD7A3)
+		))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * @class 입력값이 날짜 형태인지 체크하는 함수(8자리)
+ * @param strValue(String)
+ * @return true = 입력값이 8자리 날짜(yyyyMMdd) 형태일 경우
+ */
+//asdf	comUtil.gfn_checkDate8 = function (strValue)
+//asdf	{
+//asdf		if (this.gfn_length(strValue) != 8)
+//asdf		{
+//asdf			return false;
+//asdf		}
+//asdf		else if (!this.gfn_DateCheck(strValue))
+//asdf		{
+//asdf			return false;
+//asdf		}
+//asdf		return true;
+//asdf	}
+
+/**
+ * @class 입력값이 날짜 형태인지 체크하는 함수(10자리)
+ * @param strValue(String)
+ * @return true = 입력값이 10자리 날짜 형태일 경우/ 허용입력타입(yyyy-MM-dd, yyyy/MM/dd, yyyy.MM.dd)
+ */
+//asdf	comUtil.gfn_checkDate10 = function (strValue)
+//asdf	{
+//asdf		return this.gfn_checkDate8(this.gfn_replace(this.gfn_replace(this.gfn_replace(strValue, "/", ""), "-", ""), ".", ""));
+//asdf	}
+
+/**
+ * @class 파일 확장자를 가져온다.
+ * @param 파일명
+ * @return String, 파일 확장자
+ */
+comUtil.gfn_getFileExt = function (strFileName)
+{
+	strFileName = "" + strFileName;
+	var arrFileName = strFileName.split(".");
+	var strFileExt = arrFileName[arrFileName.length - 1];
+
+	return strFileExt.trim();
+}
+
+/**
+ * @class 파일 경로에서 파일명만 가져온다.
+ * @param 파일명
+ * @return String, 파일명
+ */
+comUtil.gfn_getFileName = function (strFilePath)
+{
+	var strFileName = "";
+	strFilePath = this.gfn_toString(strFilePath);
+	for (var i = 0; i < strFilePath.length; i++)
+	{
+		if (this.gfn_right(strFilePath, i + 1).indexOf("\\") > -1)
+		{
+			break;
+		}
+		if (this.gfn_right(strFilePath, i + 1).indexOf("\/") > -1)
+		{
+			break;
+		}
+		strFileName = this.gfn_right(strFilePath, i + 1);
+	}
+	return strFileName;
+}
+
+/**
+ * @class 메세지 값을 문자열 치환하여 메세지 내용을 조회한다.
+ * @param TextID: 메세지ID
+ * @param aArgs: 토큰문자배열
+ * @return 처리 메시지
+ */
+comUtil.gfn_getDomainText = function (TextID, aArgs)
+{
+	// alert("Util 256 " + TextID);
+	if (this.gfn_isNull(TextID))
+	{
+		return "";
+	}
+	var sRtnMsg = nexacro.getApplication().gds_domainText.lookup(ct_domainIdCol, TextID, ct_domainTextCol + "_" + nexacro.getApplication().gv_locale);
+	if (this.gfn_isNull(sRtnMsg))
+	{
+		return TextID;
+	}
+	if (this.gfn_isNull(aArgs))
+	{
+		return sRtnMsg;
+	}
+
+	var sType = typeof(aArgs);
+	
+	switch (sType)
+	{
+		case "object":
+			if (aArgs.length > 0)
+			{
+				for (var i = 0; i < aArgs.length; i++)
+				{
+					var strVal = aArgs[i];
+					sRtnMsg = sRtnMsg.replace(ct_txtPrefixFr + (i + 1) + ct_txtPrefixTo, this.gfn_getDomainText(strVal));
+				}
+			}
+			else
+			{
+				for (var strName; ; )
+				{
+					var strVal = aArgs[strName];
+					sRtnMsg = sRtnMsg.replace(ct_txtPrefixFr + strName + ct_txtPrefixTo, this.gfn_getDomainText(strVal));
+				}
+			}
+			break;
+		default:
+			sRtnMsg = sRtnMsg.replace(ct_txtPrefixFr + "1" + ct_txtPrefixTo, this.gfn_getDomainText(aArgs));
+			break;
+	}
+	
+	return sRtnMsg;
+}
+
+/**
+ * @class 입력값이 Null이거나 빈값인지 체크한다.
+ * @param sValue
+ * @return Boolean(true/false)
+ */
+comUtil.gfn_isEmpty = function (val)
+{
+	var rtnVal = (this.gfn_isNull(val)) ? "" : val;
+	return rtnVal;
+}
+
+/**
+ * @class 문자열이 숫자형식에 맞으면 숫자값을 반환
+ * @param sNum 체크할 문자열
+ * @return int
+ */
+comUtil.gfn_getNum = function (sNum)
+{
+	if (nexacro.isNumeric(sNum))
+	{
+		return parseInt(sNum);
+	}
+	else
+	{
+		0;
+	}
+}
+
+/**
+ * @class NULL 일 경우 빈 값을 리턴한다.
+ * @param sValue 체크할 문자열(String)
+ * @param sEmptyVal 공백문자(default "")
+ * @return 입력값이 null = "", Not Null = 원래의 값
+ */
+comUtil.gfn_nullToEmpty = function (sValue, sEmptyVal)
+{
+	if (this.gfn_isNull(sEmptyVal))
+	{
+		sEmptyVal = "";
+	}
+	if (this.gfn_isNull(sValue))
+	{
+		return sEmptyVal;
+	}
+	return sValue;
+}
+
+/**
+ * @class 입력값을 String으로 변경한다.
+ * @param Val
+ * @return String
+ */
+comUtil.gfn_toString = function (val)
+{
+	if (this.gfn_isNull(val))
+	{
+		return new String();
+	}
+	
+	return new String(val);
+}
+
+/**
+ * @class 입력값 형태에 따라서 길이 또는 범위를 구하는 함수
+ * @param Val(객체,문자열,배열)
+ * @return Type에 따라 구해진 길이 또는 범위
+ */
+comUtil.gfn_length = function (val)
+{
+	return this.gfn_toString(val).length;
+}
+
+/**
+ * @class 스트링의 자릿수를 Byte 단위로 환산하여 알려준다 영문, 숫자는 1Byte이고 한글은 2Byte이다.
+ * @param sValue(스트링)
+ * @return 문자열의 byte 길이
+ */
+comUtil.gfn_getByteLength = function (sValue)
+{
+	var byteLength = 0;
+
+	if (this.gfn_isNull(sValue))
+	{
+		return 0;
+	}
+	
+	for (var i = 0; i < sValue.length; i++)
+	{
+		if (sValue.charCodeAt(i) > 127)
+		{
+			byteLength += 2;
+		}
+		else
+		{
+			byteLength += 1;
+		}
+	}
+
+	return byteLength;
+}
+
+/**
+ * @class 스트링의 자릿수를 Byte 단위로 환산하여 알려준다 영문, 숫자는 1Byte이고 한글은 3Byte이다.(자/모 중에 하나만 있는 글자도 3Byte이다.)
+ * @param sValue(스트링)
+ * @return 문자열의 byte 길이
+ */
+comUtil.gfn_getByteLength3 = function (sValue)
+{
+	var byteLength = 0;
+	var charCode = "";
+
+	for (var i = 0; i < sValue.length; i++)
+	{
+		charCode = sValue.charCodeAt(i);
+		
+		if (charCode <= "0x00007F")
+		{
+			byteLength += 1;
+		}
+		else if (charCode <= "0x0007FF")
+		{
+			byteLength += 2;
+		}
+		else if (charCode <= "0x00FFFF")
+		{
+			byteLength += 3;
+		}
+		else
+		{
+			byteLength += 4;
+		}
+	}
+	
+	return byteLength;
+}
+
+/**
+ * @class 문자 전체 길이를 계산(문자,숫자,특수문자 : 1 로 Count, 그외 한글/한자 : 2 로 count 되어 합산한다.
+ * @param sValue(스트링) - 입력받은 문자열 (예 : "a1\n한韓")
+ * @return 성공 = 문자열의 byte 길이(예 : 7), 실패 = -1
+ */
+comUtil.gfn_lengthByte = function (sValue)
+{
+	var byteLength = 0;
+
+	if (this.gfn_isNull(sValue))
+	{
+		return -1;
+	}
+
+	for (var i = 0; i < sValue.length; i++)
+	{
+		if (sValue.charCodeAt(i) > 127)
+		{
+			byteLength += 2;
+		}
+		else
+		{
+			byteLength += 1;
+		}
+	}
+
+	return byteLength;
+}
+
+/*
+ 멀티바이트 문자를 2바이트로 계산하여 주어진 길이만큼 자릅니다.
+*/
+comUtil.gfn_cutByteLength2 = function(str, len)
+{
+	var l = 0;
+			
+	for (var i=0; i < str.length; i++)
+	{
+		l += (str.charCodeAt(i) > 128) ? 2 : 1;
+
+		if (l > len) return str.substring(0, i);
+	}
+
+	return str;
+};
+
+/*
+ 멀티바이트 문자를 3바이트로 계산하여 주어진 길이만큼 자릅니다.
+*/
+comUtil.gfn_cutByteLength3 = function(str, len)
+{
+	var l = 0;
+			
+	for (var i=0; i < str.length; i++)
+	{
+		l += (str.charCodeAt(i) > 128) ? 3 : 1;
+
+		if (l > len) return str.substring(0, i);
+	}
+
+	return str;
+};
+
+/**
+ * @class 스트링자릿수를 체크하여 제한한다.
+ * @param val(스트링)
+ * @param nLimit - 제한글자수
+ * @return 문자열의 byte 길이
+ */
+comUtil.gfn_isMaxLengh = function (val, nLimit)
+{
+	var nLength = this.gfn_getByteLength(val);
+	var bRtn = (nLength > nLimit) ? false : true;
+
+	return bRtn;
+}
+
+/**
+ * @class 전체 문자열 중 특정 문자열이 포함된 위치를 반납
+ *		  ex) gfn_IndexOf("abc", "b")
+ * @param Val 원본 문자열.
+ * @param strOld 검사할 문자열
+ * @param index  시작순서
+ * @return 문자열이 포함된 위치의 index값
+ */
+comUtil.gfn_indexOf = function (val, strOld, index)
+{
+	if (this.gfn_isNull(index))
+	{
+		index = 0;
+	}
+	
+	return this.gfn_toString(val).indexOf(strOld, index);
+}
+
+/**
+ * @class 입력된 실수를 문자열 표현법으로 표현하는 함수
+ * @param dNumber 문자열로 출력할 실수
+ * @param nDetail 출력시 소숫점 이하의 자릿수(Default : 0)
+ * @return 문자열로 바뀐 실수(출력되는 실수는 정수부분에 3자리마다 ',' 가 삽입)
+ *		   gfn_numFormat(12345.66)
+ */
+comUtil.gfn_numFormat = function (dNumber, nDetail)
+{
+	var strVal = "" + dNumber;
+	var rtnStr;
+	var arrStr;
+
+	if (this.gfn_isNotNull(nDetail))
+	{
+		strVal = nexacro.round(nexacro.toNumber(dNumber), nDetail);
+	}
+
+	return this.gfn_setComma(strVal);
+}
+
+/**
+ * @class 문자 포맷 형식 변환(해당 문자는 포맷에서 @ 사용)
+ * @param Val: 문자열
+ * @param strMask: 문자열 포맷, (@:문자, 포맷스트링("-", ",", ".")등
+ * @return 포맷된 문자
+ */
+comUtil.gfn_getFormat = function (val, strMask)
+{
+	var strRetVal = "";
+	var sUnit;
+
+	if (this.gfn_isNull(val))
+	{
+		return "";
+	}
+
+	val = this.gfn_toString(val);
+	
+	for (var i = 0; i < strMask.length; i++)
+	{
+		sUnit = strMask.substr(i, 1);
+		
+		if (sUnit == "@")
+		{
+			strRetVal += val.substr(0, 1);
+			val = val.substr(1);
+		}
+		else
+		{
+			strRetVal += sUnit;
+		}
+	}
+	return strRetVal;
+}
+
+/**
+ * @class 숫자에 ","를 집어넣기
+ * @param sNum: 문자열
+ * @return 포맷된 문자
+ */
+comUtil.gfn_setComma = function (sNum)
+{
+	"use strict";
+
+	// 숫자변환이 불가능하면 널값으로 리턴.
+	if (sNum != nexacro.toNumber(sNum))
+	{
+		return null;
+	}
+
+	var nNum = nexacro.toNumber(sNum);
+	var isMinusValue = nNum < 0;
+	
+	
+	sNum = this.gfn_toString(Math.abs(nNum));
+	var iDotPos = sNum.indexOf(".");
+	var sNum1 = sNum.substr(0, iDotPos == -1 ? sNum.length : iDotPos);
+	var sNum2 = iDotPos == -1 ? "" : sNum.substr(iDotPos, sNum.length);
+
+	var iComma = (sNum1.length - 1) % 3;
+
+	var sss = "";
+
+	for (var ii = 0; ii < sNum1.length; ii++)
+	{
+		sss += sNum1.substr(ii, 1);
+		sss += (ii % 3 == iComma) && (ii < sNum1.length - 1) ? "," : "";
+	}
+
+	return (isMinusValue ? "-" : "") + sss + sNum2;
+}
+/**
+ * @class 특정 문자열을 기준으로 전체 문자열을 나누어서 하나의 배열(Array)로 만들어 반납하는 함수
+ * @param Val: Parsing 할 원본 문자열
+ * @param strString: 원본 문자열
+ * @param strChar: 나눌 기준이 되는 문자
+ * @return Array
+ */
+comUtil.gfn_split = function ()
+{
+	var rtnArr = new Array();
+	var arrArgument = this.gfn_split.arguments;
+
+	if (arrArgument.length < 1)
+	{
+		
+	}
+	else if (arrArgument.length < 2)
+	{
+		if (!this.gfn_isNull(arrArgument[0]))
+		{
+			rtnArr[0] = arrArgument[0];
+		}
+	}
+	else if (arrArgument.length == 2)
+	{
+		if (!this.gfn_isNull(arrArgument[0]))
+		{
+			rtnArr = arrArgument[0].toString().split(arrArgument[1]);
+		}
+	}
+
+	return rtnArr;
+}
+
+comUtil.gfn_callback = function (strServiceId, strErrorCode, strErrorMsg)
+{
+	if (strErrorCode < 0)
+	{
+		return false;
+	}
+	return true;
+}
+
+/**
+ * @class - 숫자를 한글로 변환
+ * @param name - 문자열
+ * @return N/A - 변환된 한글
+ * @since
+ * @example
+ */
+comUtil.gfn_viewKorean = function (val)
+{
+	val = nexacro.trim(val.toString());
+
+	// 2022-08-26 0원에 대한 표기법 예외 추가
+	if(val == "0") return "영원";
+	
+	var minus = "";
+	if(val.indexOf("-")==0) 
+	{
+		minus = "-";
+		val = nexacro.replaceAll(val, "-", "");
+	}
+
+
+	var unit = ['', '만', '억', '조'];  
+	var result = [];  //변환된 값을 저장할 배열
+	var unitCnt = Math.ceil(val.length / 4);  //단위 갯수. 숫자 10000은 일단위와 만단위 2개.
+	
+	//val = val.padStart(unitCnt * 4, '0')  //4자리 값이 되도록 0을 채운다
+	val = this.gfn_lpad(val, unitCnt * 4, '0'); //val.padStart(unitCnt * 4, '0')  //4자리 값이 되도록 0을 채운다
+
+	var regexp = /[\w\W]{4}/g;  //4자리 단위로 숫자 분리  
+	var array = val.match(regexp);
+	//낮은 자릿수에서 높은 자릿수 순으로 값을 만든다(그래야 자릿수 계산에 용이)  
+	for(var i = array.length - 1, unitCnt = 0; i >= 0; i--, unitCnt++) 
+	{
+		var hanValue = fn_makeHan(array[i]);  //한글로 변환된 숫자    
+		if(hanValue == '')  //값이 없을땐 해당 단위의 값이 모두 0.       
+			continue;    
+		
+		result.unshift(hanValue + unit[unitCnt]);  //unshift는 항상 배열의 앞에 넣는다.  
+		}
+
+	if(this.gfn_isNotNull( result )) result = minus + result.join('') + "원";
+	
+    return result;
+    
+    // 기존코드 참고용
+    /*
+    var hanA = new Array("","일","이","삼","사","오","육","칠","팔","구","십");
+    var danA = new Array("","십","백","천","","십","백","천","","십","백","천","","십","백","천");
+    var result = "";
+    
+    var str="", han="" ;
+    var pre = "";
+    for(var i=0; i<val.length; i++) {		
+		str = "";
+		pre = han;
+		han = hanA[val.charAt(val.length-(i+1))];
+		if(han != "")
+			str += han+danA[i];
+			
+		// 2022-08-18 김현철. 만/억/조 붙이는 기준 변경. 100000000의 경우, 일억만원으로 변환되는 사례가 있어서 예외 추가함. JJUDBA.F_NUM2HAN 참조.
+		if((han != "" && i == 4) || (han != "" && pre == "" && i > 4 && i < 8)) str += "만";	// if(i == 4) str += "만";
+		if((han != "" && i == 8) || (han != "" && pre == "" && i > 8 && i < 12)) str += "억";	// if(i == 8) str += "억";
+		if((han != "" && i == 12) || (han != "" && pre == "" && i > 12 && i < 16)) str += "조";	// if(i == 12) str += "조";
+		result = str + result;
+	}
+	*/
+		}
+		
+/**
+ * @class - 숫자를 한글로 변환
+ * gfn_viewKorean에서 사용하는 함수
+ *		
+ */
+
+ function fn_makeHan(text) {    
+	 var str = '';    
+	 var number = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];  
+	 var smallUnit = ['천', '백', '십', ''];
+	 for(var i = 0; i < text.length; i++) {      
+		 var num = text[i];      
+		 if(num == '0')  //0은 읽지 않는다        
+			continue;      
+
+		 str += number[num] + smallUnit[i];    
+	}
+	 return str;  
+}
+
+/**
+ * @class 브라우저를 체크하여 IE인지 결과값을 리턴
+ * @return Boolean,	IE일 경우 = true
+ *					이외의 경우 = false
+ */
+comUtil.gfn_isIE = function ()
+{
+	var rtnVal;
+	var agent;
+	var appTF = false;
+
+	if (system.navigatorname == "nexacro")
+	{
+		agent = system.navigatorname;
+		appTF = true;
+	}
+	else
+	{
+		agent = navigator.userAgent.toLowerCase();
+		appTF = (navigator.appName == 'Netscape' && navigator.userAgent.search('Trident') != -1);
+	}
+
+	if (appTF || (agent.indexOf("msie") != -1) || (agent.indexOf("nexacro") != -1))
+	{
+		rtnVal = true;
+	}
+	else
+	{
+		rtnVal = false;
+	}
+
+	return rtnVal;
+}
+
+/**
+ * @class 문자열을 잘라 지정한 길이만큼 Return 한다.
+ * @param str( 문자열)
+ * @param len - 얻어올 크기. [Default Value = 0]
+ */
+comUtil.gfn_chkJumin = function(rsrno) {
+
+	var juminNo = rsrno.replace("-", "");
+	juminNo = juminNo.trim();
+	
+	if (!nexacro.isNumeric(juminNo) || juminNo.length != 13)
+	{
+		return false;
+	}
+	
+	if(juminNo.substr(7, 6).toString() == "000000"){
+		return false;
+	}
+	
+	var juminChkDgt = [2,3,4,5,6,7,8,9,2,3,4,5];
+	var fNum = new Number();
+	var lNum = new Number();
+	var iSum = new Number();
+	var yy, lnumf;
+	
+	fNum = juminNo.substr(0, 6).toString();
+	lNum = juminNo.substr(6).toString();
+	lnumf = lNum.substr(0,1);
+	
+	if (lnumf == '1' ||  lnumf == '2' ||  lnumf == '5' ||  lnumf == '6')
+	{
+		yy  = '19';
+	}
+	else if (lnumf == '3' ||  lnumf == '4' ||  lnumf == '7' ||  lnumf == '8') 
+	{
+		yy  = '20';
+	}
+	else if (lnumf == '9' ||  lnumf == '0') 
+	{
+		yy  = '18';
+	}
+	else
+	{
+		return false;
+	}
+	
+	if((yy + fNum) != comDate.gfn_dateToStr(comDate.gfn_strToDate(yy + fNum)))
+	{
+		return false;
+	}
+	
+	var bForeignerYN = "N";
+	if (lNum.substr(0,1) == '5' || lNum.substr(0,1) == '6' || lNum.substr(0,1) == '7' ||  lNum.substr(0,1) == '8')
+	{
+		bForeignerYN = "Y";
+	}
+	
+	for (var ix = 0; ix < 12 ; ix++)
+	{
+		iSum += (parseInt(juminNo.substr(ix, 1)) * juminChkDgt[ix]);
+	}
+	
+	
+	// 2021-10-25 김현철 변경
+	// 외국인의 경우 산식 끝나고 +2로 하면 산식의 결과가 달라진다.
+	// 애초에 빼는 값을 내국인은 11에서 빼고, 외국인은 13에서 빼야한다. (11로 빼고 나중에 +2해주면 미묘하게 다름)
+	if(bForeignerYN == "Y"){
+		iSum = 13 - (iSum % 11);
+	}else{
+		iSum = 11 - (iSum % 11);
+	}
+	
+	iSum = iSum % 10;
+	
+// 	if(bForeignerYN == "Y") 
+// 	{
+// 		iSum += 2;
+// 	}
+	
+	if (iSum != (parseInt(juminNo.substr(12, 1))))
+	{
+		return false;
+	}
+	
+	return true;
+};
+
+/**
+ * @class 문자열을 잘라 지정한 길이만큼 Return 한다.
+ * @param str( 문자열)
+ * @param len - 얻어올 크기. [Default Value = 0]
+ * @return String 잘라진 문자열.
+ */
+comUtil.gfn_getByteCut = function (str, len)
+{
+	var l = 0;
+	for (var i = 0; i < str.length; i++)
+	{
+		l += (str.charCodeAt(i) > 128) ? 2 : 1;
+		
+		if (l > len)
+		{
+			return str.substring(0, i);
+		}
+	}
+	
+	return str;
+};
+
+/**
+ * @class 문자열을 잘라 지정한 길이만큼 Return 한다.
+ * @param str( 문자열)
+ * @param len - 얻어올 크기. [Default Value = 0]
+ * @return String 잘라진 문자열.
+ */
+comUtil.gfn_getByteCut = function (str, len)
+{
+	var l = 0;
+	for (var i = 0; i < str.length; i++)
+	{
+		l += (str.charCodeAt(i) > 128) ? 2 : 1;
+		
+		if (l > len)
+		{
+			return str.substring(0, i);
+		}
+	}
+	
+	return str;
+};
+
+/**
+ * @class 숫자/대문자/소문자/특수문자를 지정한 길이만큼 랜덤생성하여 Return 한다.
+ * @param iLength
+ * @param bNumber
+ * @param bUpper
+ * @param bLower
+ * @param bSpecialChar
+ * @return String 랜덤생성된 문자열.
+ */
+comUtil.gfn_getRandomText = function (iLength, bNumber, bUpper, bLower, bSpecial)
+{
+	var arr = [];
+
+	var characters = "";
+	characters += this.gfn_isNull(bUpper  ) || bUpper   ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "";
+	characters += this.gfn_isNull(bLower  ) || bLower   ? "abcdefghijklmnopqrstuvwxyz" : "";
+	characters += this.gfn_isNull(bNumber ) || bNumber  ? "0123456789" : "";
+	characters += this.gfn_isNull(bSpecial) || bSpecial ? "!\"#$%&'()*+,-./:;< => ?@[￦]^_`{|}~" : "";
+	var charactersLength = characters.length;
+
+
+
+	for (var ii = 0; ii < iLength; ii++) 
+	{
+		arr.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
+	}
+
+	return arr.join("");
+};

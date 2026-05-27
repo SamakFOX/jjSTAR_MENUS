@@ -1,0 +1,26 @@
+@keyframes borderPulse {
+  0% { border-color: rgba(0, 79, 145, 0.2); }
+  50% { border-color: rgba(0, 79, 145, 0.6); }
+  100% { border-color: rgba(0, 79, 145, 0.2); }
+}
+
+.editable-item {
+  border-style: dashed;
+  animation: borderPulse 2s infinite ease-in-out;
+}
+
+.dragging {
+  opacity: 0.5;
+  scale: 1.05;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: #fbbf24; }
+  50% { border-color: #f59e0b; }
+}
+
+.animate-pulse-border {
+  border-width: 4px !important;
+  animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

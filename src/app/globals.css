@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f6fb; /* Original light greyish blue */
+  --foreground: #1e293b; /* Slate 800 for better readability */
+  --primary: #004f91;    /* Original deep blue */
+  --accent: #f3d129;     /* Original yellow accent */
+}
+
+@theme inline {
+  --font-sans: var(--font-pretendard), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-pretendard), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
