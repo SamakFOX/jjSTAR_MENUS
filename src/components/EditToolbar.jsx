@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Edit2, Save, RotateCcw, Eye, CheckCircle } from 'lucide-react';
+import { Edit2, Save, RotateCcw, Eye, CheckCircle, Cloud } from 'lucide-react';
 
 export default function EditToolbar({
   isEditMode,
@@ -11,6 +11,9 @@ export default function EditToolbar({
   onReset,
   onSubmit,
   onPreview,
+  onSaveDraft,
+  isSavingDraft,
+  draftStatusLabel,
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 mb-6">
@@ -58,6 +61,19 @@ export default function EditToolbar({
       </div>
 
       <div className="flex items-center gap-2">
+        <div className="hidden md:block text-xs font-medium text-slate-400 mr-1">
+          {draftStatusLabel}
+        </div>
+
+        <button
+          onClick={onSaveDraft}
+          disabled={isSavingDraft}
+          className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all"
+        >
+          <Cloud size={18} />
+          <span>{isSavingDraft ? '저장 중...' : '임시저장'}</span>
+        </button>
+
         <button
           onClick={onPreview}
           className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-all"

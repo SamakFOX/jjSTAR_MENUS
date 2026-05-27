@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import jjstarLogo from '@/data/jjstarLogo.png';
 import MenuBoard from '@/components/MenuBoard';
@@ -17,9 +17,19 @@ const STORAGE_KEYS = {
 };
 
 const HISTORY_LIMIT = 20;
+const AUTO_SAVE_INTERVAL_MS = 30000;
 const DEFAULT_USER_NAME = '메뉴 배치 테스트 참여자';
 
 const isSameMenuState = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+const formatDraftTime = (value) => {
+  if (!value) return '';
+
+  return new Date(value).toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 const toKoreanError = (message) => {
   const messages = {
@@ -58,29 +68,16 @@ export default function Home() {
   const [submitStep, setSubmitStep] = useState('edit');
   const [submitIntention, setSubmitIntention] = useState('');
   const [submitError, setSubmitError] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [lastDraftSavedAt, setLastDraftSavedAt] = useState('');
+  const [draftStatus, setDraftStatus] = useState('idle');
 
   const menuTreeRef = useRef(initialMenu);
+  const changeLogRef = useRef([]);
   const undoStackRef = useRef([]);
   const redoStackRef = useRef([]);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const savedCode = sessionStorage.getItem(STORAGE_KEYS.code) || '';
-      const savedUserName = sessionStorage.getItem(STORAGE_KEYS.userName) || DEFAULT_USER_NAME;
-      const savedLabel = sessionStorage.getItem(STORAGE_KEYS.label) || '';
-
-      if (savedCode) {
-        setAuthCode(savedCode);
-        setUserName(savedUserName);
-        setAuthLabel(savedLabel);
-        setIsStarted(true);
-      }
-
-      setMounted(true);
-    }, 0);
-
-    return () => clearTimeout(timeout);
-  }, []);
+  const submitIntentionRef = useRef('');
 
   useEffect(() => {
     menuTreeRef.current = menuTree;
@@ -94,15 +91,27 @@ export default function Home() {
     redoStackRef.current = redoStack;
   }, [redoStack]);
 
+  useEffect(() => {
+    changeLogRef.current = changeLog;
+  }, [changeLog]);
+
+  useEffect(() => {
+    submitIntentionRef.current = submitIntention;
+  }, [submitIntention]);
+
   const addChangeLog = (type, message) => {
-    setChangeLog((prev) => [
-      ...prev,
-      {
-        type,
-        message,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+    setChangeLog((prev) => {
+      const next = [
+        ...prev,
+        {
+          type,
+          message,
+          createdAt: new Date().toISOString(),
+        },
+      ];
+      changeLogRef.current = next;
+      return next;
+    });
   };
 
   const showActionToast = (message) => {
@@ -114,6 +123,142 @@ export default function Home() {
     menuTreeRef.current = nextTree;
     setMenuTree(nextTree);
   };
+
+  const applyLoadedDraft = useCallback((draft) => {
+    const nextMenuTree = draft?.menu_data || initialMenu;
+    const nextChangeLog = Array.isArray(draft?.change_log) ? draft.change_log : [];
+    const nextUndoStack = Array.isArray(draft?.undo_stack) ? draft.undo_stack : [];
+    const nextRedoStack = Array.isArray(draft?.redo_stack) ? draft.redo_stack : [];
+    const nextIntention = String(draft?.intention || '');
+
+    menuTreeRef.current = nextMenuTree;
+    changeLogRef.current = nextChangeLog;
+    undoStackRef.current = nextUndoStack;
+    redoStackRef.current = nextRedoStack;
+    submitIntentionRef.current = nextIntention;
+
+    setMenuTree(nextMenuTree);
+    setChangeLog(nextChangeLog);
+    setUndoStack(nextUndoStack);
+    setRedoStack(nextRedoStack);
+    setSubmitIntention(nextIntention);
+    setIsDirty(false);
+    setLastDraftSavedAt(draft?.updated_at || '');
+    setDraftStatus(draft ? 'saved' : 'idle');
+  }, []);
+
+  const loadDraftByAuthCode = useCallback(async (code) => {
+    const res = await fetch(`/api/drafts?authCode=${encodeURIComponent(code)}`);
+    const result = await res.json();
+
+    if (!res.ok || !result.ok) {
+      throw new Error(result.message || 'Could not load draft.');
+    }
+
+    return result.draft || null;
+  }, []);
+
+  const saveDraft = useCallback(async ({ silent = false } = {}) => {
+    if (!authCode || isSavingDraft || submitStep === 'submitted') return false;
+
+    setIsSavingDraft(true);
+    setDraftStatus('saving');
+
+    try {
+      const res = await fetch('/api/drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          authCode,
+          menuData: menuTreeRef.current,
+          changeLog: changeLogRef.current,
+          undoStack: undoStackRef.current,
+          redoStack: redoStackRef.current,
+          intention: submitIntentionRef.current,
+        }),
+      });
+      const result = await res.json();
+
+      if (!res.ok || !result.ok) {
+        throw new Error(result.message || 'Could not save draft.');
+      }
+
+      const savedAt = result.draft?.updated_at || new Date().toISOString();
+      setLastDraftSavedAt(savedAt);
+      setIsDirty(false);
+      setDraftStatus('saved');
+
+      if (!silent) {
+        showActionToast('임시저장되었습니다.');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('[draft] save failed:', error);
+      setDraftStatus('error');
+
+      if (!silent) {
+        showActionToast('임시저장 중 오류가 발생했습니다.');
+      }
+
+      return false;
+    } finally {
+      setIsSavingDraft(false);
+    }
+  }, [authCode, isSavingDraft, submitStep]);
+
+  useEffect(() => {
+    let isActive = true;
+    const timeout = setTimeout(() => {
+      const restoreSession = async () => {
+        const savedCode = sessionStorage.getItem(STORAGE_KEYS.code) || '';
+        const savedUserName = sessionStorage.getItem(STORAGE_KEYS.userName) || DEFAULT_USER_NAME;
+        const savedLabel = sessionStorage.getItem(STORAGE_KEYS.label) || '';
+
+        if (savedCode) {
+          try {
+            const draft = await loadDraftByAuthCode(savedCode);
+            if (!isActive) return;
+
+            setAuthCode(savedCode);
+            setUserName(savedUserName);
+            setAuthLabel(savedLabel);
+            applyLoadedDraft(draft);
+            setIsStarted(true);
+          } catch (error) {
+            console.error('[draft] session restore failed:', error);
+            if (!isActive) return;
+
+            setAuthCode(savedCode);
+            setUserName(savedUserName);
+            setAuthLabel(savedLabel);
+            applyLoadedDraft(null);
+            setIsStarted(true);
+          }
+        }
+
+        if (isActive) setMounted(true);
+      };
+
+      restoreSession();
+    }, 0);
+
+    return () => {
+      isActive = false;
+      clearTimeout(timeout);
+    };
+  }, [applyLoadedDraft, loadDraftByAuthCode]);
+
+  useEffect(() => {
+    if (!isStarted || !authCode || submitStep === 'submitted' || isLoading) return undefined;
+
+    const interval = setInterval(() => {
+      if (!isDirty || isSavingDraft) return;
+      saveDraft({ silent: true });
+    }, AUTO_SAVE_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [authCode, isDirty, isLoading, isSavingDraft, isStarted, saveDraft, submitStep]);
 
   const commitMenuChange = (nextTree, message, previousTree) => {
     const currentTree = previousTree || menuTreeRef.current;
@@ -130,6 +275,8 @@ export default function Home() {
     setRedoStack([]);
     applyMenuTree(nextTree);
     addChangeLog('edit', message);
+    setIsDirty(true);
+    setDraftStatus('dirty');
     showActionToast(message);
   };
 
@@ -147,6 +294,8 @@ export default function Home() {
     setUndoStack(nextUndoStack);
     setRedoStack(nextRedoStack);
     applyMenuTree(previousTree);
+    setIsDirty(true);
+    setDraftStatus('dirty');
     showActionToast('작업이 취소되었습니다.');
   };
 
@@ -164,6 +313,8 @@ export default function Home() {
     setUndoStack(nextUndoStack);
     setRedoStack(nextRedoStack);
     applyMenuTree(nextTree);
+    setIsDirty(true);
+    setDraftStatus('dirty');
     showActionToast('작업을 다시 실행하였습니다.');
   };
 
@@ -197,15 +348,17 @@ export default function Home() {
       sessionStorage.setItem(STORAGE_KEYS.userName, DEFAULT_USER_NAME);
       sessionStorage.setItem(STORAGE_KEYS.label, result.label || '');
 
+      let draft = null;
+      try {
+        draft = await loadDraftByAuthCode(code);
+      } catch (error) {
+        console.error('[draft] login load failed:', error);
+      }
+
       setAuthCode(code);
       setUserName(DEFAULT_USER_NAME);
       setAuthLabel(result.label || '');
-      applyMenuTree(initialMenu);
-      setChangeLog([]);
-      setUndoStack([]);
-      setRedoStack([]);
-      undoStackRef.current = [];
-      redoStackRef.current = [];
+      applyLoadedDraft(draft);
       setIsStarted(true);
     } catch (error) {
       console.error('Verification error:', error);
@@ -227,6 +380,8 @@ export default function Home() {
       setUndoStack([]);
       setRedoStack([]);
       applyMenuTree(initialMenu);
+      setIsDirty(true);
+      setDraftStatus('dirty');
       showActionToast('초기 상태로 복원되었습니다.');
     }
   };
@@ -294,7 +449,16 @@ export default function Home() {
         return;
       }
 
+      fetch(`/api/drafts?authCode=${encodeURIComponent(authCode)}`, {
+        method: 'DELETE',
+      }).catch((error) => {
+        console.error('[draft] cleanup failed:', error);
+      });
+
+      changeLogRef.current = finalLog;
       setChangeLog(finalLog);
+      setIsDirty(false);
+      setDraftStatus('idle');
       setIsEditMode(false);
       setEditModeType('list');
       setSubmitStep('submitted');
@@ -320,8 +484,14 @@ export default function Home() {
     setSubmitStep('edit');
     setSubmitIntention('');
     setSubmitError('');
+    setIsDirty(false);
+    setIsSavingDraft(false);
+    setLastDraftSavedAt('');
+    setDraftStatus('idle');
+    changeLogRef.current = [];
     undoStackRef.current = [];
     redoStackRef.current = [];
+    submitIntentionRef.current = '';
     applyMenuTree(initialMenu);
   };
 
@@ -343,6 +513,14 @@ export default function Home() {
       setIsPreviewOpen(true);
     }
   };
+
+  const draftStatusLabel = (() => {
+    if (draftStatus === 'saving') return '저장 중...';
+    if (draftStatus === 'error') return '저장 실패';
+    if (isDirty) return '저장되지 않은 변경사항';
+    if (lastDraftSavedAt) return `마지막 임시저장: ${formatDraftTime(lastDraftSavedAt)}`;
+    return '임시저장 없음';
+  })();
 
   const sidePanelContent = (
     <>
@@ -412,7 +590,7 @@ export default function Home() {
         )}
 
         <p className="mt-4 text-xs text-slate-400 text-left">
-          인증코드는 테스트 참여 확인 용도로만 사용합니다.
+          인증코드는 테스터별 진행 데이터 임시저장 목적으로만 사용합니다.
         </p>
       </div>
 
@@ -486,6 +664,9 @@ export default function Home() {
           onReset={handleReset}
           onSubmit={handleSubmit}
           onPreview={() => setIsPreviewOpen(true)}
+          onSaveDraft={() => saveDraft({ silent: false })}
+          isSavingDraft={isSavingDraft}
+          draftStatusLabel={draftStatusLabel}
         />
 
         <MenuBoard
@@ -552,7 +733,13 @@ export default function Home() {
             </p>
             <textarea
               value={submitIntention}
-              onChange={(event) => setSubmitIntention(event.target.value)}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                submitIntentionRef.current = nextValue;
+                setSubmitIntention(nextValue);
+                setIsDirty(true);
+                setDraftStatus('dirty');
+              }}
               placeholder="답변을 입력해주세요."
               className="mt-3 min-h-36 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-[#004f91] focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
