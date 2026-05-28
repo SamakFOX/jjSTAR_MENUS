@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import jjstarLogo from '@/data/jjstarLogo.png';
 import AdminDashboard from '@/components/AdminDashboard';
+import GuideOverlay from '@/components/GuideOverlay';
 import MenuBoard from '@/components/MenuBoard';
 import EditToolbar from '@/components/EditToolbar';
 import PreviewModal from '@/components/PreviewModal';
@@ -24,8 +25,142 @@ const STORAGE_KEYS = {
 const HISTORY_LIMIT = 20;
 const AUTO_SAVE_INTERVAL_MS = 30000;
 const DEFAULT_USER_NAME = '메뉴 배치 테스트 참여자';
+const GUIDE_STEPS = [
+  {
+    id: 'start-edit',
+    target: 'edit-button',
+    title: '메뉴 편집 시작',
+    body: '메뉴를 바꾸려면 먼저 "메뉴 편집하기" 버튼을 직접 눌러 주세요.',
+    requireAction: true,
+    completeWhen: 'editModeOn',
+    actionHint: '강조된 버튼을 눌러 편집 모드로 들어가 보세요.',
+    doneHint: '좋아요. 편집 모드로 들어왔습니다.',
+  },
+  {
+    id: 'edit-ui',
+    target: 'edit-ui',
+    title: '편집 화면 기본 UI',
+    body: '편집 화면에서는 리스트 편집과 화면에서 편집 모드를 오가며 메뉴를 조정할 수 있어요. 초기화 버튼은 현재 배치를 처음 상태로 되돌립니다.',
+  },
+  {
+    id: 'top-actions',
+    target: 'top-actions',
+    title: '상단 우측 버튼',
+    body: '상단 우측 버튼으로 작업을 저장하거나, 현재 메뉴 구성을 미리보고, 최종 제출 단계로 이동할 수 있어요.',
+    details: [
+      '임시저장: 작업 내용 임시 저장',
+      '미리보기: 현재 구성을 실제 화면처럼 확인',
+      '최종제출: 의견 추가 및 제출',
+    ],
+  },
+  {
+    id: 'edit-tools',
+    target: 'edit-tools',
+    title: '우측 편집 도구',
+    body: '우측 편집 도구에서는 대분류 추가, 대분류 순서 변경, 되돌리기/다시실행, 표시 레벨 조절을 할 수 있어요. 사용 방법 보기를 누르면 이 가이드를 다시 볼 수 있습니다.',
+  },
+  {
+    id: 'drag-handle',
+    target: 'drag-handle',
+    title: '핸들을 잡고 드래그',
+    body: '왼쪽 점 모양 핸들을 눌러 위아래로 드래그하면 메뉴 순서를 바꿀 수 있어요.',
+    note: '아이템 전체가 아니라 이 핸들을 잡는 동작을 기억해 주세요.',
+    requireAction: true,
+    completeOn: 'pointerdown',
+    actionHint: '강조된 핸들을 한 번 눌러보세요. 실제 이동하지 않아도 됩니다.',
+    doneHint: '좋아요. 이 핸들을 잡고 움직이면 됩니다.',
+    demo: 'drag-handle',
+    placement: 'top',
+  },
+  {
+    id: 'item-actions',
+    target: 'item-actions',
+    title: '아이템별 편집 버튼',
+    body: '오른쪽 아이콘 버튼으로 메뉴를 이동하거나 수정, 추가, 삭제할 수 있어요.',
+    details: [
+      '(←) 이전 이동: 현재 메뉴를 앞쪽으로 이동합니다.',
+      '(→) 다음 이동: 현재 메뉴를 뒤쪽으로 이동합니다.',
+      '(연필) 이름 수정: 메뉴 이름을 변경합니다.',
+      '(＋) 하위 메뉴 추가: 현재 메뉴 아래에 새 하위 메뉴를 추가합니다.',
+      '(휴지통) 삭제: 현재 메뉴를 삭제합니다.',
+    ],
+    note: '각 아이콘 위에 마우스를 올리면 기능 이름도 확인할 수 있어요.',
+    requireAction: true,
+    completeOn: 'hover',
+    actionHint: '강조된 아이콘 영역에 마우스를 올려보세요.',
+    doneHint: '좋아요. 각 아이콘 위에 올리면 기능 이름도 확인할 수 있습니다.',
+    placement: 'right',
+  },
+  {
+    id: 'menu-tooltip',
+    target: 'menu-tooltip',
+    title: '메뉴 설명 확인',
+    body: '메뉴명이 헷갈릴 때는 이름 위에 마우스를 올려 설명 툴팁을 확인해 보세요.',
+    requireAction: true,
+    completeOn: 'hover',
+    actionHint: '강조된 메뉴명에 마우스를 올려보세요.',
+    doneHint: '좋아요. 어려운 메뉴는 이렇게 설명을 확인하면 됩니다.',
+    demo: 'tooltip',
+    placement: 'top',
+  },
+  {
+    id: 'visual-mode',
+    target: 'visual-mode-tab',
+    title: '화면에서 편집',
+    body: '"화면에서 편집"을 직접 눌러 비주얼모드로 전환해 보세요.',
+    requireAction: true,
+    completeWhen: 'visualModeOn',
+    actionHint: '강조된 "화면에서 편집" 탭을 눌러보세요.',
+    doneHint: '좋아요. 실제 화면처럼 보면서 편집할 수 있습니다.',
+  },
+  {
+    id: 'visual-handle',
+    target: 'visual-handle',
+    title: '비주얼모드 편집',
+    body: '비주얼모드에서도 점 모양 핸들을 잡고 원하는 위치에 놓으면 됩니다.',
+    note: '대분류는 상단 탭 순서, 중분류와 소분류는 허용된 계층 안에서 이동할 수 있습니다.',
+    demo: 'drag-handle',
+  },
+  {
+    id: 'final-submit-entry',
+    target: 'final-submit-button',
+    title: '최종 제출 화면으로 이동',
+    body: '이제 "최종 제출" 버튼을 눌러 제출 확인 화면으로 이동해 보세요. 실제 제출은 아직 진행하지 않습니다.',
+    requireAction: true,
+    completeWhen: 'submitFormOpen',
+    actionHint: '강조된 최종 제출 버튼을 눌러 확인 화면으로 이동해 보세요.',
+    doneHint: '제출 확인 화면으로 이동했습니다.',
+  },
+  {
+    id: 'submit-intention',
+    target: 'submit-intention',
+    title: '최종 제출 화면',
+    body: '여기에는 왜 이렇게 메뉴를 배치했는지 간단히 적어 주세요. 현재 메뉴 구성과 변경 로그가 함께 제출됩니다.',
+    requireAction: true,
+    completeOn: 'input',
+    actionHint: '입력칸을 클릭하거나 한 글자 이상 입력해 보세요.',
+    doneHint: '좋아요. 이 내용은 최종 제출 시 함께 저장됩니다.',
+  },
+  {
+    id: 'submit-actions',
+    target: 'submit-actions',
+    title: '취소와 제출',
+    body: '취소를 누르면 편집 화면으로 돌아가고, 제출을 누르면 현재 메뉴 배치가 최종 저장됩니다.',
+    details: [
+      '취소: 제출하지 않고 이전 화면으로 돌아갑니다.',
+      '제출: 현재 메뉴 배치를 최종 제출합니다.',
+    ],
+  },
+];
 
 const isSameMenuState = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+const getHideGuideKey = (code) => `hideGuide:${code}`;
+
+const isGuideHidden = (code) => {
+  if (!code || typeof window === 'undefined') return false;
+  return localStorage.getItem(getHideGuideKey(code)) === 'true';
+};
 
 const formatDraftTime = (value) => {
   if (!value) return '';
@@ -78,6 +213,9 @@ export default function Home() {
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState('');
   const [draftStatus, setDraftStatus] = useState('idle');
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [guideStep, setGuideStep] = useState(0);
+  const [completedGuideSteps, setCompletedGuideSteps] = useState(() => new Set());
 
   const menuTreeRef = useRef(initialMenu);
   const changeLogRef = useRef([]);
@@ -154,6 +292,15 @@ export default function Home() {
     setIsDirty(false);
     setLastDraftSavedAt(draft?.updated_at || '');
     setDraftStatus(draft ? 'saved' : 'idle');
+  }, []);
+
+  const updateGuideForDraft = useCallback((code, draft) => {
+    const shouldShow = !draft && !isGuideHidden(code);
+    setShowGuide(shouldShow);
+    if (shouldShow) {
+      setGuideStep(0);
+      setCompletedGuideSteps(new Set());
+    }
   }, []);
 
   const loadDraftByAuthCode = useCallback(async (code) => {
@@ -237,6 +384,7 @@ export default function Home() {
               const draft = await loadDraftByAuthCode(savedCode);
               if (!isActive) return;
               applyLoadedDraft(draft);
+              updateGuideForDraft(savedCode, draft);
             }
             setIsStarted(true);
           } catch (error) {
@@ -247,6 +395,7 @@ export default function Home() {
             setUserName(savedUserName);
             setAuthLabel(savedLabel);
             applyLoadedDraft(null);
+            updateGuideForDraft(savedCode, null);
             setIsStarted(true);
           }
         }
@@ -261,7 +410,7 @@ export default function Home() {
       isActive = false;
       clearTimeout(timeout);
     };
-  }, [applyLoadedDraft, loadDraftByAuthCode]);
+  }, [applyLoadedDraft, loadDraftByAuthCode, updateGuideForDraft]);
 
   useEffect(() => {
     if (isAdminMode || !isStarted || !authCode || submitStep === 'submitted' || isLoading) return undefined;
@@ -387,6 +536,7 @@ export default function Home() {
       setUserName(DEFAULT_USER_NAME);
       setAuthLabel(result.label || '');
       applyLoadedDraft(draft);
+      updateGuideForDraft(code, draft);
       setIsStarted(true);
     } catch (error) {
       console.error('Verification error:', error);
@@ -410,6 +560,10 @@ export default function Home() {
       applyMenuTree(initialMenu);
       setIsDirty(true);
       setDraftStatus('dirty');
+      if (!isGuideHidden(authCode)) {
+        setGuideStep(1);
+        setShowGuide(true);
+      }
       showActionToast('초기 상태로 복원되었습니다.');
     }
   };
@@ -420,11 +574,23 @@ export default function Home() {
     if (errors.length > 0) {
       setSubmitError(`제출할 수 없습니다. ${errors.join(' / ')}`);
       setSubmitStep('submitForm');
+      if (!isGuideHidden(authCode)) {
+        if (!showGuide) setGuideStep(10);
+        setShowGuide(true);
+      }
       return;
     }
 
     setSubmitError(warnings.length > 0 ? `확인할 안내가 있습니다. ${warnings.join(' / ')}` : '');
     setSubmitStep('submitForm');
+    if (showGuide && GUIDE_STEPS[guideStep]?.id === 'final-submit-entry') {
+      markGuideStepComplete('final-submit-entry');
+      setGuideStep(10);
+    }
+    if (!isGuideHidden(authCode)) {
+      if (!showGuide) setGuideStep(10);
+      setShowGuide(true);
+    }
   };
 
   const handleSubmitForm = async () => {
@@ -518,6 +684,7 @@ export default function Home() {
     setIsSavingDraft(false);
     setLastDraftSavedAt('');
     setDraftStatus('idle');
+    setShowGuide(false);
     changeLogRef.current = [];
     undoStackRef.current = [];
     redoStackRef.current = [];
@@ -533,15 +700,110 @@ export default function Home() {
     setEditModeType(type);
     if (type === 'visual') {
       setIsPreviewOpen(true);
+      if (showGuide && GUIDE_STEPS[guideStep]?.id === 'visual-mode') {
+        markGuideStepComplete('visual-mode');
+        setGuideStep(8);
+      }
     }
   };
 
   const handleToggleEdit = () => {
     const nextValue = !isEditMode;
     setIsEditMode(nextValue);
+    if (nextValue && showGuide) {
+      setEditModeType('list');
+      if (GUIDE_STEPS[guideStep]?.id === 'start-edit') {
+        markGuideStepComplete('start-edit');
+        setGuideStep(1);
+      }
+      return;
+    }
     if (nextValue && editModeType === 'visual') {
       setIsPreviewOpen(true);
     }
+  };
+
+  const handleDontShowGuideAgain = () => {
+    if (authCode) {
+      localStorage.setItem(getHideGuideKey(authCode), 'true');
+    }
+    setShowGuide(false);
+    setGuideStep(0);
+  };
+
+  const startFullGuide = () => {
+    setCompletedGuideSteps(new Set());
+    setGuideStep(0);
+    setSubmitStep('edit');
+    setIsPreviewOpen(false);
+    setEditModeType('list');
+    setIsEditMode(false);
+    setShowGuide(true);
+  };
+
+  const closeGuide = () => {
+    setShowGuide(false);
+    setGuideStep(0);
+  };
+
+  const finishGuide = () => {
+    setShowGuide(false);
+    setGuideStep(0);
+    setSubmitStep('edit');
+    setIsPreviewOpen(false);
+    setEditModeType('list');
+    setIsEditMode(false);
+  };
+
+  const markGuideStepComplete = useCallback((stepId) => {
+    setCompletedGuideSteps((prev) => {
+      if (prev.has(stepId)) return prev;
+      const next = new Set(prev);
+      next.add(stepId);
+      return next;
+    });
+  }, []);
+
+  const currentGuideStep = GUIDE_STEPS[guideStep];
+  const isCurrentGuideStepComplete = !currentGuideStep?.requireAction || completedGuideSteps.has(currentGuideStep.id);
+
+  const prepareGuideStep = (step) => {
+    if (!step) return;
+
+    if (step.id === 'top-actions') {
+      setIsPreviewOpen(false);
+    }
+
+    if (['edit-ui', 'top-actions', 'edit-tools', 'drag-handle', 'item-actions', 'menu-tooltip', 'visual-mode'].includes(step.id)) {
+      setSubmitStep('edit');
+      setIsPreviewOpen(false);
+      setIsEditMode(true);
+      setEditModeType('list');
+    }
+
+    if (step.id === 'final-submit-entry') {
+      setSubmitStep('edit');
+      setIsPreviewOpen(false);
+      setEditModeType('list');
+    }
+  };
+
+  const goToNextGuideStep = () => {
+    if (!currentGuideStep) return;
+    if (currentGuideStep.requireAction && !completedGuideSteps.has(currentGuideStep.id)) return;
+    if (guideStep >= GUIDE_STEPS.length - 1) {
+      finishGuide();
+      return;
+    }
+    const nextStep = Math.min(GUIDE_STEPS.length - 1, guideStep + 1);
+    prepareGuideStep(GUIDE_STEPS[nextStep]);
+    setGuideStep(nextStep);
+  };
+
+  const goToPreviousGuideStep = () => {
+    const previousStep = Math.max(0, guideStep - 1);
+    prepareGuideStep(GUIDE_STEPS[previousStep]);
+    setGuideStep(previousStep);
   };
 
   const draftStatusLabel = (() => {
@@ -710,6 +972,10 @@ export default function Home() {
           undoCount={undoStack.length}
           redoCount={redoStack.length}
           sidePanelContent={sidePanelContent}
+          showGuide={showGuide && isEditMode && editModeType === 'list'}
+          onShowGuide={() => {
+            startFullGuide();
+          }}
         />
       </main>
 
@@ -727,6 +993,19 @@ export default function Home() {
         setItems={handleVisualMenuChange}
         isEditable={isEditMode && editModeType === 'visual'}
       />
+      {showGuide && currentGuideStep && (
+        <GuideOverlay
+          step={currentGuideStep}
+          stepIndex={guideStep}
+          totalSteps={GUIDE_STEPS.length}
+          isStepComplete={isCurrentGuideStepComplete}
+          onActionComplete={markGuideStepComplete}
+          onPrevious={goToPreviousGuideStep}
+          onNext={goToNextGuideStep}
+          onClose={closeGuide}
+          onDontShowAgain={handleDontShowGuideAgain}
+        />
+      )}
     </div>
   );
 
@@ -754,7 +1033,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="mt-6">
+          <div className="mt-6" data-guide-id="submit-intention" data-guide-target="submit-intention">
             <label className="block text-base font-black text-slate-800">
               메뉴 구성 의도가 어떻게 되나요?
             </label>
@@ -775,7 +1054,7 @@ export default function Home() {
             />
           </div>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          <div className="mt-8 grid gap-3 sm:grid-cols-2" data-guide-id="submit-actions" data-guide-target="submit-actions">
             <button
               type="button"
               onClick={() => {
@@ -803,6 +1082,19 @@ export default function Home() {
           </div>
         </section>
       </main>
+      {showGuide && currentGuideStep && (
+        <GuideOverlay
+          step={currentGuideStep}
+          stepIndex={guideStep}
+          totalSteps={GUIDE_STEPS.length}
+          isStepComplete={isCurrentGuideStepComplete}
+          onActionComplete={markGuideStepComplete}
+          onPrevious={goToPreviousGuideStep}
+          onNext={goToNextGuideStep}
+          onClose={closeGuide}
+          onDontShowAgain={handleDontShowGuideAgain}
+        />
+      )}
     </div>
   );
   const submittedScreen = (

@@ -346,7 +346,12 @@ function SortableTab({ id, title, desc, isActive, onMouseEnter, isEditable, getD
         } ${isValidDrop ? 'bg-white/20' : ''}`}
       >
         {isEditable && (
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-white/30 hover:text-white/60">
+          <div
+            {...attributes}
+            {...listeners}
+            data-guide-target="visual-handle"
+            className="cursor-grab active:cursor-grabbing text-white/30 hover:text-white/60"
+          >
             <GripVertical size={14} />
           </div>
         )}
@@ -402,7 +407,13 @@ function SortableItem({ id, title, desc, isEditable, getDropValidity, isAnyDragg
         }`}
       >
         {isEditable && (
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-[#0070c0] p-0.5">
+          <div
+            {...attributes}
+            {...listeners}
+            data-guide-id="visual-handle"
+            data-guide-target="visual-handle"
+            className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-[#0070c0] p-0.5"
+          >
             <GripVertical size={10} />
           </div>
         )}
@@ -465,7 +476,13 @@ function SortableCategory({
     >
       <div className="flex items-center gap-2 border-b border-slate-100 pb-2 relative">
         {isEditable && (
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-[#004f91]">
+          <div
+            {...attributes}
+            {...listeners}
+            data-guide-id="visual-handle"
+            data-guide-target="visual-handle"
+            className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-[#004f91]"
+          >
             <GripVertical size={16} />
           </div>
         )}
@@ -700,6 +717,18 @@ export default function PreviewModal({ isOpen, onClose, items: menuTree, setItem
 
   useEffect(() => () => cancelLevel1Switch(), [cancelLevel1Switch]);
 
+  useEffect(() => {
+    if (!isOpen || !isEditable || activeTab) return undefined;
+    const firstMenuWithChildren = menuTree.find((menu) => menu.children?.length > 0);
+    if (!firstMenuWithChildren) return undefined;
+
+    const timer = setTimeout(() => {
+      setActiveTab(firstMenuWithChildren.id);
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [activeTab, isEditable, isOpen, menuTree]);
+
   /**
    * Visual Editor 전용 drop 유효성 계산.
    * List Mode에서는 이 함수를 사용하지 않음.
@@ -892,7 +921,10 @@ export default function PreviewModal({ isOpen, onClose, items: menuTree, setItem
 
           {/* Editor Badge */}
           {isEditable && (
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-amber-400 text-[#004f91] px-6 py-1 rounded-b-xl font-black text-sm z-[115] shadow-lg flex items-center gap-2">
+            <div
+              data-guide-target="visual-guide"
+              className="absolute top-0 left-1/2 -translate-x-1/2 bg-amber-400 text-[#004f91] px-6 py-1 rounded-b-xl font-black text-sm z-[115] shadow-lg flex items-center gap-2"
+            >
               <LayoutGrid size={16} />
               화면에서 편집
             </div>
@@ -934,7 +966,12 @@ export default function PreviewModal({ isOpen, onClose, items: menuTree, setItem
             </div>
 
             {/* Navigation Tabs (L1) */}
-            <nav ref={level1TrackRef} className="relative z-[130] min-h-11 px-6 flex items-center gap-1 overflow-x-auto no-scrollbar bg-[#0070c0]">
+            <nav
+              ref={level1TrackRef}
+              data-guide-id="visual-range"
+              data-guide-target="visual-range"
+              className="relative z-[130] min-h-11 px-6 flex items-center gap-1 overflow-x-auto no-scrollbar bg-[#0070c0]"
+            >
               <SortableContext items={topLevelMenus.map(m => m.id)} strategy={horizontalListSortingStrategy}>
                 {topLevelMenus.map((menu) => (
                   <SortableTab
@@ -1002,7 +1039,10 @@ export default function PreviewModal({ isOpen, onClose, items: menuTree, setItem
               </div>
 
               {isEditable && (
-                <div className="bg-amber-50 px-10 py-2 text-[10px] font-bold text-amber-700 flex justify-between items-center">
+                <div
+                  data-guide-target="visual-range"
+                  className="bg-amber-50 px-10 py-2 text-[10px] font-bold text-amber-700 flex justify-between items-center"
+                >
                   <span>{previewCopy.editGuide}</span>
                   <button onClick={() => setActiveTab(null)} className="hover:underline">{previewCopy.close}</button>
                 </div>

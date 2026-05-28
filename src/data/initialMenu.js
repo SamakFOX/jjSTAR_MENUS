@@ -173,7 +173,7 @@ export const initialMenu = [
         "id": "L03COUN",
         "title": "심리/학업/진로 상담",
         "level": 2,
-        "desc": "",
+        "desc": "전주대 내에서 진행하는 상담 관련 메뉴들로 구성되어 있어요",
         "children": [
           {
             "id": "L04CNGD",
@@ -191,19 +191,19 @@ export const initialMenu = [
             "id": "L04MENT",
             "title": "멘토링",
             "level": 3,
-            "desc": ""
+            "desc": "멘토 선택과 멘티 관리를 위한 메뉴에요, 또래상담도 여기서 관리해요"
           },
           {
             "id": "L04ONCN",
             "title": "온라인 상담",
             "level": 3,
-            "desc": ""
+            "desc": "온라인으로 상담자를 지정하고 상담 내용을 입력해 상담을 요청하는 메뉴에요"
           },
           {
             "id": "L04PSYC",
             "title": "카운슬링센터 심리 검사",
             "level": 3,
-            "desc": ""
+            "desc": "카운슬링센터에서 제공하는 온라인 심리검사 4종을 진행하는 메뉴에요"
           }
         ]
       },
@@ -211,25 +211,25 @@ export const initialMenu = [
         "id": "L03BUSS",
         "title": "통학버스",
         "level": 2,
-        "desc": "",
+        "desc": "통학버스 정보와 신청 등 버스 관련 메뉴들로 구성되어 있어요",
         "children": [
           {
             "id": "L04BUSI",
             "title": "통학버스 안내",
             "level": 3,
-            "desc": ""
+            "desc": "통학버스 신청기간이나 변경사항을 공지하는 메뉴에요"
           },
           {
             "id": "L04BUSM",
             "title": "통학버스 노선도",
             "level": 3,
-            "desc": ""
+            "desc": "각 지역별 통학버스가 정차하는 장소와 시간을 확인하는 메뉴에요"
           },
           {
             "id": "L04BUSA",
             "title": "통학버스 신청",
             "level": 3,
-            "desc": ""
+            "desc": "통학버스 신청기간에 신청서를 작성하는 메뉴에요"
           }
         ]
       },
@@ -237,13 +237,13 @@ export const initialMenu = [
         "id": "L03DORM",
         "title": "학생생활관",
         "level": 2,
-        "desc": "",
+        "desc": "기숙사 안내, 입퇴사, 고지서 등 기숙사와 관련된 기본 서비스와 신청형 서비스들로 구성되어 있어요",
         "children": [
           {
             "id": "L04DMNT",
             "title": "학생생활관 공지사항",
             "level": 3,
-            "desc": ""
+            "desc": "기숙사 정보와 신청기간 및 변경사항 등을 공지하는 메뉴에요"
           },
           {
             "id": "L04DMAP",

@@ -31,6 +31,7 @@ export default function MenuItem({
   onRenameItem,
   dragHandleProps,
   draggableSnapshot,
+  isGuideTarget = false,
 }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(item.title);
@@ -79,20 +80,26 @@ export default function MenuItem({
       <div
         className={`flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 ${getLevelColor(item.level)} ${
           isDragging ? 'shadow-lg z-50 scale-[1.02] border-blue-400' : ''
-        }`}
+        } ${isGuideTarget ? 'guide-drag-card relative z-[181] outline-2 outline-offset-4 outline-[#004f91] shadow-[0_0_0_8px_rgba(0,79,145,0.12)]' : ''}`}
+        data-guide-id={isGuideTarget ? 'list-menu-row' : undefined}
+        data-guide-target={isGuideTarget ? 'list-menu-row' : undefined}
         style={{
           marginLeft: `${(item.level - 1) * 32}px`,
         }}
       >
         {isEditMode && (
-          <button
-            {...dragHandleProps}
-            className="p-1 hover:bg-slate-100 rounded cursor-grab active:cursor-grabbing text-slate-400"
-            title="드래그"
-            type="button"
-          >
-            <GripVertical size={18} />
-          </button>
+          <>
+            <button
+              {...dragHandleProps}
+              data-guide-id={isGuideTarget ? 'drag-handle' : undefined}
+              data-guide-target={isGuideTarget ? 'list-drag-handle' : undefined}
+              className={`p-1 hover:bg-slate-100 rounded cursor-grab active:cursor-grabbing text-slate-400 ${isGuideTarget ? 'guide-handle-focus text-[#004f91]' : ''}`}
+              title="드래그"
+              type="button"
+            >
+              <GripVertical size={18} />
+            </button>
+          </>
         )}
 
         <button
@@ -130,7 +137,11 @@ export default function MenuItem({
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-2"
+              data-guide-id={isGuideTarget ? 'menu-tooltip' : undefined}
+              data-guide-target={isGuideTarget ? 'menu-tooltip' : undefined}
+            >
               <MenuDescTooltip desc={item.desc} disabled={isDragging} className="flex-1">
                 <span className={`${isLevel1 ? 'text-lg font-black text-slate-900' : 'text-sm font-semibold'} truncate`}>
                   {item.title}
@@ -148,7 +159,11 @@ export default function MenuItem({
         </div>
 
         {isEditMode && (
-          <div className="flex items-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-sm">
+          <div
+            data-guide-id={isGuideTarget ? 'item-actions' : undefined}
+            data-guide-target={isGuideTarget ? 'item-actions' : undefined}
+            className={`flex items-center gap-1 transition-opacity bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-sm ${isGuideTarget ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`}
+          >
             {SHOW_MOVE_BUTTONS && !isLevel1 && (
               <div className="flex border-r border-slate-200 pr-1 mr-1">
                 <button onClick={() => onMoveOrder(item.id, -1)} className="p-1.5 hover:bg-white rounded text-slate-600" title="순서 정렬: 위" type="button">

@@ -61,6 +61,8 @@ export default function MenuBoard({
   undoCount,
   redoCount,
   sidePanelContent,
+  showGuide = false,
+  onShowGuide,
 }) {
   const [expandedIds, setExpandedIds] = useState(new Set());
   const [isL1ReorderMode, setIsL1ReorderMode] = useState(false);
@@ -414,6 +416,10 @@ export default function MenuBoard({
     hasChildren: item.children?.length > 0,
   });
 
+  const guideTargetId = showGuide
+    ? menuTree.find((level1Item) => level1Item.children?.length > 0)?.children?.[0]?.id
+    : null;
+
   const renderMenuItem = (item, dragHandleProps, snapshot) => (
     <MenuItem
       item={item}
@@ -428,6 +434,7 @@ export default function MenuBoard({
       onRenameItem={handleRenameItem}
       dragHandleProps={dragHandleProps}
       draggableSnapshot={snapshot}
+      isGuideTarget={item.id === guideTargetId}
     />
   );
 
@@ -514,7 +521,7 @@ export default function MenuBoard({
   };
 
   const historyToolBox = (
-    <div className="p-5 bg-white rounded-xl shadow-sm border border-slate-200 space-y-4">
+    <div className="p-5 bg-white rounded-xl shadow-sm border border-slate-200 space-y-4" data-guide-id="edit-tools">
       <h3 className="font-bold text-slate-800 flex items-center gap-2">
         <ListOrdered className="text-[#004f91]" size={18} />
         편집 도구
@@ -591,6 +598,15 @@ export default function MenuBoard({
       <p className="text-xs font-medium text-slate-500 leading-relaxed">
         최근 20회의 편집 이력을 되돌리거나 다시 실행할 수 있습니다.
       </p>
+      {isEditMode && (
+        <button
+          type="button"
+          onClick={onShowGuide}
+          className="w-full rounded-lg bg-blue-50 px-3 py-2 text-xs font-black text-[#004f91] transition hover:bg-blue-100"
+        >
+          사용 방법 보기
+        </button>
+      )}
     </div>
   );
 

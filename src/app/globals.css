@@ -18,3 +18,137 @@ body {
   color: var(--foreground);
   font-family: var(--font-pretendard), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+
+.guide-drag-card {
+  animation: guide-focus-pulse 1.8s ease-in-out infinite;
+}
+
+.guide-handle-focus {
+  box-shadow: 0 0 0 6px rgba(0, 79, 145, 0.12);
+  animation: guide-handle-pulse 1.8s ease-in-out infinite;
+}
+
+.guide-dim {
+  pointer-events: none;
+  z-index: 9000;
+}
+
+.guide-highlight,
+.guide-target-ring {
+  pointer-events: none;
+  z-index: 9010;
+  border: 2px solid #004f91;
+  box-shadow: 0 0 0 6px rgba(0, 79, 145, 0.12);
+}
+
+.guide-pointer,
+.guide-handle-pointer {
+  pointer-events: none;
+  z-index: 9020;
+  color: #004f91;
+  filter: drop-shadow(0 8px 12px rgba(0, 79, 145, 0.28));
+  animation: guide-handle-drag 1.8s ease-in-out infinite;
+}
+
+.guide-pointer-hover {
+  animation: guide-tooltip-hover 1.8s ease-in-out infinite;
+}
+
+.guide-popover {
+  z-index: 9030;
+}
+
+.guide-controls {
+  position: relative;
+  z-index: 9040;
+}
+
+.guide-tooltip-demo {
+  pointer-events: none;
+  z-index: 9025;
+}
+
+.guide-drop-placeholder {
+  pointer-events: none;
+  z-index: 9010;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(0, 79, 145, 0.18), rgba(243, 209, 41, 0.9), rgba(0, 79, 145, 0.18));
+  animation: guide-placeholder 1.8s ease-in-out infinite;
+}
+
+@keyframes guide-focus-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 8px rgba(0, 79, 145, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(0, 79, 145, 0.16);
+  }
+}
+
+@keyframes guide-handle-pulse {
+  0%,
+  100% {
+    background-color: rgba(239, 246, 255, 0.75);
+  }
+  50% {
+    background-color: rgba(219, 234, 254, 1);
+  }
+}
+
+@keyframes guide-handle-drag {
+  0% {
+    opacity: 0;
+    transform: translate(0, -4px) scale(0.94);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.9);
+  }
+  34% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.82);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(0, 34px) scale(0.82);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 40px) scale(0.94);
+  }
+}
+
+@keyframes guide-placeholder {
+  0%,
+  45% {
+    opacity: 0;
+    transform: scaleX(0.7);
+  }
+  65%,
+  90% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(0.8);
+  }
+}
+
+@keyframes guide-tooltip-hover {
+  0% {
+    opacity: 0;
+    transform: translate(-16px, 6px) scale(0.95);
+  }
+  25%,
+  75% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(4px, 0) scale(0.95);
+  }
+}

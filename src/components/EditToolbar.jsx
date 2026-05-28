@@ -17,9 +17,11 @@ export default function EditToolbar({
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 mb-6">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" data-guide-id="edit-ui">
         <button
           onClick={onToggleEdit}
+          data-guide-id="edit-button"
+          data-guide-target="edit-start"
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${isEditMode
               ? 'bg-[#004f91] text-white shadow-blue-100'
               : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -30,7 +32,7 @@ export default function EditToolbar({
         </button>
 
         {isEditMode && (
-          <div className="flex bg-slate-100 p-1 rounded-lg">
+          <div className="flex bg-slate-100 p-1 rounded-lg" data-guide-target="mode-switch">
             <button
               onClick={() => onTypeChange('list')}
               className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${editModeType === 'list' ? 'bg-white text-[#004f91] shadow-sm' : 'text-slate-500 hover:text-slate-700'
@@ -40,6 +42,7 @@ export default function EditToolbar({
             </button>
             <button
               onClick={() => onTypeChange('visual')}
+              data-guide-id="visual-mode-tab"
               className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${editModeType === 'visual' ? 'bg-white text-[#004f91] shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 }`}
             >
@@ -60,7 +63,7 @@ export default function EditToolbar({
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" data-guide-id="top-actions" data-guide-target="toolbar-actions">
         <div className="hidden md:block text-xs font-medium text-slate-400 mr-1">
           {draftStatusLabel}
         </div>
@@ -84,6 +87,7 @@ export default function EditToolbar({
 
         <button
           onClick={onSubmit}
+          data-guide-id="final-submit-button"
           className="flex items-center gap-2 px-6 py-2 bg-slate-900 text-white rounded-lg font-bold hover:bg-black transition-all shadow-lg hover:shadow-xl"
         >
           <Save size={18} />
