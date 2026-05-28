@@ -3,17 +3,22 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import jjstarLogo from '@/data/jjstarLogo.png';
+import AdminDashboard from '@/components/AdminDashboard';
 import MenuBoard from '@/components/MenuBoard';
 import EditToolbar from '@/components/EditToolbar';
 import PreviewModal from '@/components/PreviewModal';
 import { LayoutGrid, Info, ArrowRight, CheckCircle, LogOut, Send, Eye } from 'lucide-react';
 import { initialMenu } from '@/data/initialMenu';
+import { createDetailedChangeLog } from '@/lib/changeLog';
 import { validateTree } from '@/lib/menuUtils';
+
+const ADMIN_CODE = 'JJ201562004';
 
 const STORAGE_KEYS = {
   code: 'jjstar_auth_code',
   userName: 'jjstar_user_name',
   label: 'jjstar_auth_label',
+  role: 'jjstar_auth_role',
 };
 
 const HISTORY_LIMIT = 20;
@@ -72,6 +77,7 @@ export default function Home() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState('');
   const [draftStatus, setDraftStatus] = useState('idle');
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
   const menuTreeRef = useRef(initialMenu);
   const changeLogRef = useRef([]);
@@ -101,13 +107,16 @@ export default function Home() {
 
   const addChangeLog = (type, message) => {
     setChangeLog((prev) => {
+      const logItem = typeof type === 'object'
+        ? type
+        : {
+            type,
+            message,
+            createdAt: new Date().toISOString(),
+          };
       const next = [
         ...prev,
-        {
-          type,
-          message,
-          createdAt: new Date().toISOString(),
-        },
+        logItem,
       ];
       changeLogRef.current = next;
       return next;
@@ -217,13 +226,18 @@ export default function Home() {
 
         if (savedCode) {
           try {
-            const draft = await loadDraftByAuthCode(savedCode);
             if (!isActive) return;
 
             setAuthCode(savedCode);
             setUserName(savedUserName);
             setAuthLabel(savedLabel);
-            applyLoadedDraft(draft);
+            if (sessionStorage.getItem(STORAGE_KEYS.role) === 'admin' || savedCode === ADMIN_CODE) {
+              setIsAdminMode(true);
+            } else {
+              const draft = await loadDraftByAuthCode(savedCode);
+              if (!isActive) return;
+              applyLoadedDraft(draft);
+            }
             setIsStarted(true);
           } catch (error) {
             console.error('[draft] session restore failed:', error);
@@ -250,7 +264,7 @@ export default function Home() {
   }, [applyLoadedDraft, loadDraftByAuthCode]);
 
   useEffect(() => {
-    if (!isStarted || !authCode || submitStep === 'submitted' || isLoading) return undefined;
+    if (isAdminMode || !isStarted || !authCode || submitStep === 'submitted' || isLoading) return undefined;
 
     const interval = setInterval(() => {
       if (!isDirty || isSavingDraft) return;
@@ -258,7 +272,7 @@ export default function Home() {
     }, AUTO_SAVE_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [authCode, isDirty, isLoading, isSavingDraft, isStarted, saveDraft, submitStep]);
+  }, [authCode, isAdminMode, isDirty, isLoading, isSavingDraft, isStarted, saveDraft, submitStep]);
 
   const commitMenuChange = (nextTree, message, previousTree) => {
     const currentTree = previousTree || menuTreeRef.current;
@@ -274,7 +288,7 @@ export default function Home() {
     setUndoStack(nextUndoStack);
     setRedoStack([]);
     applyMenuTree(nextTree);
-    addChangeLog('edit', message);
+    addChangeLog(createDetailedChangeLog(currentTree, nextTree, message));
     setIsDirty(true);
     setDraftStatus('dirty');
     showActionToast(message);
@@ -332,6 +346,19 @@ export default function Home() {
     setLoginError('');
 
     try {
+      if (code === ADMIN_CODE) {
+        sessionStorage.setItem(STORAGE_KEYS.code, code);
+        sessionStorage.setItem(STORAGE_KEYS.userName, '관리자');
+        sessionStorage.setItem(STORAGE_KEYS.label, '관리자');
+        sessionStorage.setItem(STORAGE_KEYS.role, 'admin');
+        setAuthCode(code);
+        setUserName('관리자');
+        setAuthLabel('관리자');
+        setIsAdminMode(true);
+        setIsStarted(true);
+        return;
+      }
+
       const res = await fetch('/api/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -347,6 +374,7 @@ export default function Home() {
       sessionStorage.setItem(STORAGE_KEYS.code, code);
       sessionStorage.setItem(STORAGE_KEYS.userName, DEFAULT_USER_NAME);
       sessionStorage.setItem(STORAGE_KEYS.label, result.label || '');
+      sessionStorage.removeItem(STORAGE_KEYS.role);
 
       let draft = null;
       try {
@@ -473,7 +501,9 @@ export default function Home() {
     sessionStorage.removeItem(STORAGE_KEYS.code);
     sessionStorage.removeItem(STORAGE_KEYS.userName);
     sessionStorage.removeItem(STORAGE_KEYS.label);
+    sessionStorage.removeItem(STORAGE_KEYS.role);
     setIsStarted(false);
+    setIsAdminMode(false);
     setAuthCode('');
     setUserName(DEFAULT_USER_NAME);
     setAuthLabel('');
@@ -819,11 +849,13 @@ export default function Home() {
     <div className="min-h-screen bg-[#f5f6fb]">
       {mounted ? (
         isStarted
-          ? submitStep === 'submitForm'
-            ? submitFormScreen
-            : submitStep === 'submitted'
-              ? submittedScreen
-              : editorScreen
+          ? isAdminMode
+            ? <AdminDashboard onLogout={handleLogout} />
+            : submitStep === 'submitForm'
+              ? submitFormScreen
+              : submitStep === 'submitted'
+                ? submittedScreen
+                : editorScreen
           : loginScreen
       ) : null}
     </div>

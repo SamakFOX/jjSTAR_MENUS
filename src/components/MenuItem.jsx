@@ -35,6 +35,7 @@ export default function MenuItem({
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(item.title);
   const isDragging = draggableSnapshot?.isDragging;
+  const SHOW_MOVE_BUTTONS = false;
 
   const getLevelColor = (level) => {
     switch (level) {
@@ -148,7 +149,7 @@ export default function MenuItem({
 
         {isEditMode && (
           <div className="flex items-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-sm">
-            {!isLevel1 && (
+            {SHOW_MOVE_BUTTONS && !isLevel1 && (
               <div className="flex border-r border-slate-200 pr-1 mr-1">
                 <button onClick={() => onMoveOrder(item.id, -1)} className="p-1.5 hover:bg-white rounded text-slate-600" title="순서 정렬: 위" type="button">
                   <ArrowUp size={14} />
