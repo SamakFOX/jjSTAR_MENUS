@@ -20,25 +20,25 @@ const MAX_LEVEL = 3;
 const copy = {
   structureError: '구조 오류',
   changeCanceled: '변경사항이 취소되었습니다.',
-  maxDepth: `최대 레벨(${MAX_LEVEL})을 초과하는 메뉴가 있습니다.`,
-  mergeConfirm: (title, target) => `"${title}" Level 2 메뉴를 "${target}" 메뉴로 통합하시겠습니까?`,
+  maxDepth: `최대 분류(${MAX_LEVEL})를 초과하는 메뉴가 있습니다.`,
+  mergeConfirm: (title, target) => `"${title}" 메뉴를 "${target}" 메뉴로 통합하시겠습니까?`,
   merged: (title, target) => `"${title}" 메뉴가 "${target}"로 통합되었습니다.`,
   moveChildConfirm: (title, target) => `"${title}" 메뉴를 "${target}" 하위로 이동하시겠습니까?`,
   movedChild: (title, target) => `"${title}" 메뉴가 "${target}" 하위로 이동되었습니다.`,
-  level1ChildBlocked: 'Level 1 메뉴는 다른 메뉴의 하위로 들어갈 수 없습니다.',
-  level3PlacementBlocked: 'Level 3 메뉴는 Level 2 하위에만 배치할 수 있습니다.',
-  level3ChildBlocked: 'Level 3 메뉴는 하위 메뉴를 가질 수 없습니다.',
+  level1ChildBlocked: '대분류 메뉴는 다른 메뉴의 하위로 들어갈 수 없습니다.',
+  level3PlacementBlocked: '소분류 메뉴는 중분류 하위에만 배치할 수 있습니다.',
+  level3ChildBlocked: '소분류 메뉴는 하위 메뉴를 가질 수 없습니다.',
   rootMoveBlocked: (level) => `${level} 메뉴는 최상위로 이동할 수 없습니다. 대분류 하위로 넣으려면 왼쪽 장바구니 아이콘으로 드래그하세요.`,
-  l1SortBlocked: "Level 1 순서 변경은 'Level 1 순서변경' 버튼을 클릭해야 가능합니다.",
-  l1RootOnly: 'Level 1 메뉴는 최상위에만 존재해야 합니다.',
+  l1SortBlocked: "대분류 순서 변경은 '대분류 순서변경' 버튼을 클릭해야 가능합니다.",
+  l1RootOnly: '대분류 메뉴는 최상위에만 존재해야 합니다.',
   sameGroupOnly: '행 영역 드래그는 같은 그룹 안의 순서 변경만 가능합니다.\n다른 그룹 하위로 이동하려면 왼쪽 장바구니 아이콘으로 드래그하세요.',
-  sameLevelOnly: '행 영역 드래그는 같은 레벨 메뉴끼리만 순서 변경이 가능합니다.',
+  sameLevelOnly: '행 영역 드래그는 같은 분류 수준에서 순서 변경이 가능합니다.',
   reordered: (title) => `"${title}" 순서가 변경되었습니다.`,
-  level3HasChildren: (title) => `"${title}"에는 하위 메뉴가 있어 Level 3으로 변경할 수 없습니다.\n먼저 하위 메뉴를 이동하거나 삭제해주세요.`,
-  changedLevel3: (title) => `"${title}" 메뉴가 Level 3으로 변경되었습니다.`,
-  noLevel3Target: '이 메뉴를 Level 3으로 변경할 수 없습니다.\n같은 Level 1 안에 이동할 대상 Level 2가 없습니다.',
-  changedLevel2: (title) => `"${title}" 메뉴가 Level 2로 변경되었습니다.`,
-  levelChangeBlocked: '현재 레벨에서는 더 이상 변경할 수 없습니다.',
+  level3HasChildren: (title) => `"${title}"에는 하위 메뉴가 있어 소분류로 변경할 수 없습니다.\n먼저 하위 메뉴를 이동하거나 삭제해주세요.`,
+  changedLevel3: (title) => `"${title}" 메뉴가 소분류로 변경되었습니다.`,
+  noLevel3Target: '이 메뉴를 소분류로 변경할 수 없습니다.\n같은 소분류 안에 이동할 대상 중분류가 없습니다.',
+  changedLevel2: (title) => `"${title}" 메뉴가 중분류로 변경되었습니다.`,
+  levelChangeBlocked: '현재 분류 수준에서는 더 이상 변경할 수 없습니다.',
   renamed: '메뉴 이름이 변경되었습니다.',
   deleted: (title) => `"${title}" 메뉴가 삭제되었습니다.`,
   deletePrompt: (title) => `"${title}" 메뉴에는 하위 메뉴가 있습니다.\n1. 모두 삭제\n2. 하위 메뉴만 다른 곳으로 이동 후 삭제\n(번호를 입력하세요)`,
@@ -48,7 +48,7 @@ const copy = {
   newRootAdded: '새 대분류가 추가되었습니다.',
   newChildTitle: '새 하위 메뉴',
   newChildAdded: '새 하위 메뉴가 추가되었습니다.',
-  l1SortDone: '대분류(Level 1) 순서 변경이 완료되었습니다.',
+  l1SortDone: '대분류 순서 변경이 완료되었습니다.',
 };
 
 export default function MenuBoard({
@@ -527,7 +527,7 @@ export default function MenuBoard({
               onClick={handleAddL1}
               className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-bold text-xs"
             >
-              <PlusCircle size={16} /> Level 1 추가
+              <PlusCircle size={16} /> 대분류 추가
             </button>
 
             {isL1ReorderMode ? (
@@ -542,7 +542,7 @@ export default function MenuBoard({
                 onClick={handleStartL1Sort}
                 className="flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors font-bold text-xs"
               >
-                <ListOrdered size={16} /> Level 1 순서변경
+                <ListOrdered size={16} /> 대분류 순서변경
               </button>
             )}
           </div>
@@ -583,9 +583,9 @@ export default function MenuBoard({
       )}
 
       <div className="grid grid-cols-1 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
-        <button onClick={showL1Only} className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-[#004f91] hover:bg-white rounded transition-all">Level 1만 보기</button>
-        <button onClick={showUpToL2} className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-[#004f91] hover:bg-white rounded transition-all">Level 2까지 보기</button>
-        <button onClick={showAll} className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-[#004f91] hover:bg-white rounded transition-all">전체 펼치기</button>
+        <button onClick={showL1Only} className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-[#004f91] hover:bg-white rounded transition-all">대분류만 보기</button>
+        <button onClick={showUpToL2} className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-[#004f91] hover:bg-white rounded transition-all">중분류까지 보기</button>
+        <button onClick={showAll} className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-[#004f91] hover:bg-white rounded transition-all">소분류까지 보기</button>
       </div>
 
       <p className="text-xs font-medium text-slate-500 leading-relaxed">
@@ -601,7 +601,7 @@ export default function MenuBoard({
         {isL1ReorderMode && (
           <div className="absolute inset-0 bg-amber-50/10 z-10 pointer-events-none flex items-start justify-center pt-6">
             <div className="bg-amber-400 text-[#004f91] px-6 py-2 rounded-full font-black shadow-xl animate-bounce flex items-center gap-2 pointer-events-auto">
-              <ListOrdered size={20} /> 대분류(Level 1) 순서 변경 중
+              <ListOrdered size={20} /> 대분류 순서 변경 중
             </div>
           </div>
         )}

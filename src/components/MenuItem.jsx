@@ -150,10 +150,10 @@ export default function MenuItem({
           <div className="flex items-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-sm">
             {!isLevel1 && (
               <div className="flex border-r border-slate-200 pr-1 mr-1">
-                <button onClick={() => onMoveOrder(item.id, -1)} className="p-1.5 hover:bg-white rounded text-slate-600" title="위로 이동" type="button">
+                <button onClick={() => onMoveOrder(item.id, -1)} className="p-1.5 hover:bg-white rounded text-slate-600" title="순서 정렬: 위" type="button">
                   <ArrowUp size={14} />
                 </button>
-                <button onClick={() => onMoveOrder(item.id, 1)} className="p-1.5 hover:bg-white rounded text-slate-600" title="아래로 이동" type="button">
+                <button onClick={() => onMoveOrder(item.id, 1)} className="p-1.5 hover:bg-white rounded text-slate-600" title="순서 정렬: 아래" type="button">
                   <ArrowDown size={14} />
                 </button>
               </div>
@@ -164,7 +164,7 @@ export default function MenuItem({
                 <button
                   onClick={() => onLevelChange(item.id, -1)}
                   className={`p-1.5 hover:bg-white rounded text-slate-600 ${isLevel2 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                  title="Level 올리기"
+                  title="상위 분류로 올리기"
                   disabled={isLevel2}
                   type="button"
                 >
@@ -173,7 +173,7 @@ export default function MenuItem({
                 <button
                   onClick={() => onLevelChange(item.id, 1)}
                   className={`p-1.5 hover:bg-white rounded text-slate-600 ${isLevel3 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                  title="Level 내리기"
+                  title="하위 분류로 내리기"
                   disabled={isLevel3}
                   type="button"
                 >
