@@ -261,6 +261,42 @@ export default function Home() {
     });
   };
 
+  const appendChangeLogOnly = (logItem) => {
+    setChangeLog((prev) => {
+      const next = [
+        ...prev,
+        {
+          ...logItem,
+          createdAt: logItem.createdAt || new Date().toISOString(),
+        },
+      ];
+      changeLogRef.current = next;
+      return next;
+    });
+    setIsDirty(true);
+    setDraftStatus('dirty');
+  };
+
+  const createUndoLog = (targetLog) => ({
+    type: 'undo',
+    message: targetLog?.message
+      ? `사용자가 "${targetLog.message}" 작업을 되돌렸습니다.`
+      : '사용자가 마지막 작업을 되돌렸습니다.',
+    targetLogType: targetLog?.type || null,
+    targetMessage: targetLog?.message || null,
+    createdAt: new Date().toISOString(),
+  });
+
+  const createRedoLog = (targetLog) => ({
+    type: 'redo',
+    message: targetLog?.message
+      ? `사용자가 "${targetLog.message}" 작업을 다시 실행했습니다.`
+      : '사용자가 되돌린 작업을 다시 실행했습니다.',
+    targetLogType: targetLog?.type || null,
+    targetMessage: targetLog?.message || null,
+    createdAt: new Date().toISOString(),
+  });
+
   const showActionToast = (message) => {
     setLastAction(message);
     setTimeout(() => setLastAction(null), 5000);
@@ -447,9 +483,11 @@ export default function Home() {
     const currentUndoStack = undoStackRef.current;
     if (currentUndoStack.length === 0) return;
 
+    const currentTree = menuTreeRef.current;
     const previousTree = currentUndoStack[currentUndoStack.length - 1];
     const nextUndoStack = currentUndoStack.slice(0, -1);
-    const nextRedoStack = [...redoStackRef.current, menuTreeRef.current].slice(-HISTORY_LIMIT);
+    const nextRedoStack = [...redoStackRef.current, currentTree].slice(-HISTORY_LIMIT);
+    const targetLog = createDetailedChangeLog(previousTree, currentTree);
 
     undoStackRef.current = nextUndoStack;
     redoStackRef.current = nextRedoStack;
@@ -457,8 +495,7 @@ export default function Home() {
     setUndoStack(nextUndoStack);
     setRedoStack(nextRedoStack);
     applyMenuTree(previousTree);
-    setIsDirty(true);
-    setDraftStatus('dirty');
+    appendChangeLogOnly(createUndoLog(targetLog));
     showActionToast('작업이 취소되었습니다.');
   };
 
@@ -466,9 +503,11 @@ export default function Home() {
     const currentRedoStack = redoStackRef.current;
     if (currentRedoStack.length === 0) return;
 
+    const currentTree = menuTreeRef.current;
     const nextTree = currentRedoStack[currentRedoStack.length - 1];
     const nextRedoStack = currentRedoStack.slice(0, -1);
-    const nextUndoStack = [...undoStackRef.current, menuTreeRef.current].slice(-HISTORY_LIMIT);
+    const nextUndoStack = [...undoStackRef.current, currentTree].slice(-HISTORY_LIMIT);
+    const targetLog = createDetailedChangeLog(currentTree, nextTree);
 
     undoStackRef.current = nextUndoStack;
     redoStackRef.current = nextRedoStack;
@@ -476,8 +515,7 @@ export default function Home() {
     setUndoStack(nextUndoStack);
     setRedoStack(nextRedoStack);
     applyMenuTree(nextTree);
-    setIsDirty(true);
-    setDraftStatus('dirty');
+    appendChangeLogOnly(createRedoLog(targetLog));
     showActionToast('작업을 다시 실행하였습니다.');
   };
 
@@ -574,9 +612,9 @@ export default function Home() {
     if (errors.length > 0) {
       setSubmitError(`제출할 수 없습니다. ${errors.join(' / ')}`);
       setSubmitStep('submitForm');
-      if (!isGuideHidden(authCode)) {
-        if (!showGuide) setGuideStep(10);
-        setShowGuide(true);
+      if (showGuide && GUIDE_STEPS[guideStep]?.id === 'final-submit-entry') {
+        markGuideStepComplete('final-submit-entry');
+        setGuideStep(10);
       }
       return;
     }
@@ -586,10 +624,6 @@ export default function Home() {
     if (showGuide && GUIDE_STEPS[guideStep]?.id === 'final-submit-entry') {
       markGuideStepComplete('final-submit-entry');
       setGuideStep(10);
-    }
-    if (!isGuideHidden(authCode)) {
-      if (!showGuide) setGuideStep(10);
-      setShowGuide(true);
     }
   };
 
@@ -766,6 +800,7 @@ export default function Home() {
 
   const currentGuideStep = GUIDE_STEPS[guideStep];
   const isCurrentGuideStepComplete = !currentGuideStep?.requireAction || completedGuideSteps.has(currentGuideStep.id);
+  const isSubmitGuideStep = currentGuideStep?.id === 'submit-intention' || currentGuideStep?.id === 'submit-actions';
 
   const prepareGuideStep = (step) => {
     if (!step) return;
@@ -1082,7 +1117,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      {showGuide && currentGuideStep && (
+      {showGuide && currentGuideStep && isSubmitGuideStep && (
         <GuideOverlay
           step={currentGuideStep}
           stepIndex={guideStep}
