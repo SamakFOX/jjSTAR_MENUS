@@ -437,6 +437,7 @@ function SortableCategory({
   registerCategoryRef,
   registerLevel3TrackRef,
   registerLevel3ItemRef,
+  guideStepId,
 }) {
   const {
     attributes,
@@ -470,8 +471,10 @@ function SortableCategory({
     <div
       ref={handleNodeRef}
       style={style}
+      data-guide-id={guideStepId === 'visual-handle' && id === 'L03REGI' ? 'visual-sample-l2-register' : undefined}
       className={`space-y-4 group p-3 rounded-xl transition-all ${
         isValidDrop ? 'bg-amber-50 ring-2 ring-amber-200 shadow-inner' : ''
+      } ${guideStepId === 'visual-handle' && id === 'L03REGI' ? 'guide-drag-card relative z-[9015] bg-white shadow-[0_0_0_8px_rgba(0,79,145,0.12)] outline-2 outline-offset-4 outline-[#004f91]' : ''
       }`}
     >
       <div className="flex items-center gap-2 border-b border-slate-100 pb-2 relative">
@@ -479,9 +482,9 @@ function SortableCategory({
           <div
             {...attributes}
             {...listeners}
-            data-guide-id="visual-handle"
+            data-guide-id={guideStepId === 'visual-handle' && id === 'L03REGI' ? 'visual-sample-l2-register-handle' : 'visual-handle'}
             data-guide-target="visual-handle"
-            className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-[#004f91]"
+            className={`cursor-grab active:cursor-grabbing text-slate-300 hover:text-[#004f91] ${guideStepId === 'visual-handle' && id === 'L03REGI' ? 'guide-handle-focus text-[#004f91]' : ''}`}
           >
             <GripVertical size={16} />
           </div>
@@ -522,7 +525,7 @@ function SortableCategory({
 // Main Modal
 // ============================================================
 
-export default function PreviewModal({ isOpen, onClose, items: menuTree, setItems: setMenuTree, isEditable }) {
+export default function PreviewModal({ isOpen, onClose, items: menuTree, setItems: setMenuTree, isEditable, guideStepId = '' }) {
   const [activeTab, setActiveTab] = useState(null);
   const [activeId, setActiveId] = useState(null);
   const [visualDragState, setVisualDragState] = useState(null);
@@ -556,6 +559,21 @@ export default function PreviewModal({ isOpen, onClose, items: menuTree, setItem
     return nextTree || menuTree;
   }, [menuTree, visualDragState]);
   const previewLookup = useMemo(() => buildFlatLookup(previewTree), [previewTree]);
+
+  useEffect(() => {
+    if (!isOpen || !isEditable || guideStepId !== 'visual-handle') return;
+
+    const registrationParent = menuTree.find((level1Item) =>
+      level1Item.children?.some((level2Item) => level2Item.id === 'L03REGI')
+    );
+
+    const timeout = window.setTimeout(() => {
+      if (!registrationParent) return;
+      setActiveTab(registrationParent.id);
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [guideStepId, isEditable, isOpen, menuTree]);
 
   const cancelLevel1Switch = useCallback(() => {
     if (level1SwitchTimerRef.current) {
@@ -885,6 +903,7 @@ export default function PreviewModal({ isOpen, onClose, items: menuTree, setItem
     setActiveId(null);
     setVisualDragState(null);
 
+    if (guideStepId === 'visual-handle') return;
     if (!dragState || String(active.id) !== dragState.activeId) return;
 
     const newTree = moveNodeToParentIndex(
@@ -1026,6 +1045,7 @@ export default function PreviewModal({ isOpen, onClose, items: menuTree, setItem
                         registerCategoryRef={registerLevel2ItemRef}
                         registerLevel3TrackRef={registerLevel3TrackRef}
                         registerLevel3ItemRef={registerLevel3ItemRef}
+                        guideStepId={guideStepId}
                       />
                     ))}
                   </div>

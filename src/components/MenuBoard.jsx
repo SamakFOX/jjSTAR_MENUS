@@ -62,6 +62,7 @@ export default function MenuBoard({
   redoCount,
   sidePanelContent,
   showGuide = false,
+  guideStepId = '',
   onShowGuide,
 }) {
   const [expandedIds, setExpandedIds] = useState(new Set());
@@ -207,6 +208,7 @@ export default function MenuBoard({
     const { source, destination, draggableId, type } = result;
 
     try {
+      if (showGuide && guideStepId === 'drag-handle') return;
       if (!destination) return;
       if (
         source.droppableId === destination.droppableId &&
@@ -416,7 +418,8 @@ export default function MenuBoard({
     hasChildren: item.children?.length > 0,
   });
 
-  const guideTargetId = showGuide
+  const shouldHighlightMenuItem = ['drag-handle', 'item-actions', 'menu-tooltip'].includes(guideStepId);
+  const guideTargetId = showGuide && shouldHighlightMenuItem
     ? menuTree.find((level1Item) => level1Item.children?.length > 0)?.children?.[0]?.id
     : null;
 
@@ -521,7 +524,7 @@ export default function MenuBoard({
   };
 
   const historyToolBox = (
-    <div className="p-5 bg-white rounded-xl shadow-sm border border-slate-200 space-y-4" data-guide-id="edit-tools">
+    <div className="p-5 bg-white rounded-xl shadow-sm border border-slate-200 space-y-4" data-guide-id="right-edit-tools" data-guide-target="edit-tools">
       <h3 className="font-bold text-slate-800 flex items-center gap-2">
         <ListOrdered className="text-[#004f91]" size={18} />
         편집 도구

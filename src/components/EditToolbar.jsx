@@ -17,11 +17,11 @@ export default function EditToolbar({
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 mb-6">
-      <div className="flex items-center gap-2" data-guide-id="edit-ui">
+      <div className="flex items-center gap-2" data-guide-id="edit-basic-toolbar" data-guide-target="edit-ui">
         <button
           onClick={onToggleEdit}
-          data-guide-id="edit-button"
-          data-guide-target="edit-start"
+          data-guide-id="start-edit-button"
+          data-guide-target="edit-button"
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${isEditMode
               ? 'bg-[#004f91] text-white shadow-blue-100'
               : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -63,7 +63,7 @@ export default function EditToolbar({
         )}
       </div>
 
-      <div className="flex items-center gap-2" data-guide-id="top-actions" data-guide-target="toolbar-actions">
+      <div className="flex items-center gap-2" data-guide-id="top-submit-actions" data-guide-target="top-actions">
         <div className="hidden md:block text-xs font-medium text-slate-400 mr-1">
           {draftStatusLabel}
         </div>

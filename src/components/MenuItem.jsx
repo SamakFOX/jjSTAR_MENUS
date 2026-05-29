@@ -32,6 +32,7 @@ export default function MenuItem({
   dragHandleProps,
   draggableSnapshot,
   isGuideTarget = false,
+  forceShowDescTooltip = false,
 }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(item.title);
@@ -80,7 +81,7 @@ export default function MenuItem({
       <div
         className={`flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 ${getLevelColor(item.level)} ${
           isDragging ? 'shadow-lg z-50 scale-[1.02] border-blue-400' : ''
-        } ${isGuideTarget ? 'guide-drag-card relative z-[181] outline-2 outline-offset-4 outline-[#004f91] shadow-[0_0_0_8px_rgba(0,79,145,0.12)]' : ''}`}
+        } ${isGuideTarget ? 'guide-drag-card relative z-[9015] outline-2 outline-offset-4 outline-[#004f91] shadow-[0_0_0_8px_rgba(0,79,145,0.12)]' : ''}`}
         data-guide-id={isGuideTarget ? 'list-menu-row' : undefined}
         data-guide-target={isGuideTarget ? 'list-menu-row' : undefined}
         style={{
@@ -139,10 +140,10 @@ export default function MenuItem({
           ) : (
             <div
               className="flex items-center gap-2"
-              data-guide-id={isGuideTarget ? 'menu-tooltip' : undefined}
+              data-guide-id={isGuideTarget ? 'menu-title-with-desc' : undefined}
               data-guide-target={isGuideTarget ? 'menu-tooltip' : undefined}
             >
-              <MenuDescTooltip desc={item.desc} disabled={isDragging} className="flex-1">
+              <MenuDescTooltip desc={item.desc} disabled={isDragging} forceVisible={forceShowDescTooltip} className="flex-1">
                 <span className={`${isLevel1 ? 'text-lg font-black text-slate-900' : 'text-sm font-semibold'} truncate`}>
                   {item.title}
                 </span>
@@ -160,7 +161,7 @@ export default function MenuItem({
 
         {isEditMode && (
           <div
-            data-guide-id={isGuideTarget ? 'item-actions' : undefined}
+            data-guide-id={isGuideTarget ? 'item-action-buttons' : undefined}
             data-guide-target={isGuideTarget ? 'item-actions' : undefined}
             className={`flex items-center gap-1 transition-opacity bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-sm ${isGuideTarget ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`}
           >

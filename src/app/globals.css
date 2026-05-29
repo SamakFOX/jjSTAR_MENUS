@@ -44,7 +44,7 @@ body {
 .guide-pointer,
 .guide-handle-pointer {
   pointer-events: none;
-  z-index: 9020;
+  z-index: 9035;
   color: #004f91;
   filter: drop-shadow(0 8px 12px rgba(0, 79, 145, 0.28));
   animation: guide-handle-drag 1.8s ease-in-out infinite;
@@ -54,18 +54,22 @@ body {
   animation: guide-tooltip-hover 1.8s ease-in-out infinite;
 }
 
+.guide-pointer-horizontal {
+  animation: guide-handle-drag-horizontal 1.8s ease-in-out infinite;
+}
+
 .guide-popover {
-  z-index: 9030;
+  z-index: 9040;
 }
 
 .guide-controls {
   position: relative;
-  z-index: 9040;
+  z-index: 9050;
 }
 
 .guide-tooltip-demo {
   pointer-events: none;
-  z-index: 9025;
+  z-index: 9030;
 }
 
 .guide-drop-placeholder {
@@ -117,6 +121,29 @@ body {
   100% {
     opacity: 0;
     transform: translate(0, 40px) scale(0.94);
+  }
+}
+
+@keyframes guide-handle-drag-horizontal {
+  0% {
+    opacity: 0;
+    transform: translate(-4px, 0) scale(0.94);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.9);
+  }
+  34% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.82);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(42px, 6px) scale(0.82);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(50px, 8px) scale(0.94);
   }
 }
 

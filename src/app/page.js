@@ -28,23 +28,25 @@ const DEFAULT_USER_NAME = '메뉴 배치 테스트 참여자';
 const GUIDE_STEPS = [
   {
     id: 'start-edit',
-    target: 'edit-button',
+    target: 'start-edit-button',
     title: '메뉴 편집 시작',
     body: '메뉴를 바꾸려면 먼저 "메뉴 편집하기" 버튼을 직접 눌러 주세요.',
     requireAction: true,
+    allowNextWithoutComplete: true,
     completeWhen: 'editModeOn',
     actionHint: '강조된 버튼을 눌러 편집 모드로 들어가 보세요.',
     doneHint: '좋아요. 편집 모드로 들어왔습니다.',
   },
   {
     id: 'edit-ui',
-    target: 'edit-ui',
+    target: 'edit-basic-toolbar',
     title: '편집 화면 기본 UI',
     body: '편집 화면에서는 리스트 편집과 화면에서 편집 모드를 오가며 메뉴를 조정할 수 있어요. 초기화 버튼은 현재 배치를 처음 상태로 되돌립니다.',
+    placement: 'right',
   },
   {
     id: 'top-actions',
-    target: 'top-actions',
+    target: 'top-submit-actions',
     title: '상단 우측 버튼',
     body: '상단 우측 버튼으로 작업을 저장하거나, 현재 메뉴 구성을 미리보고, 최종 제출 단계로 이동할 수 있어요.',
     details: [
@@ -55,100 +57,121 @@ const GUIDE_STEPS = [
   },
   {
     id: 'edit-tools',
-    target: 'edit-tools',
+    target: 'right-edit-tools',
     title: '우측 편집 도구',
-    body: '우측 편집 도구에서는 대분류 추가, 대분류 순서 변경, 되돌리기/다시실행, 표시 레벨 조절을 할 수 있어요. 사용 방법 보기를 누르면 이 가이드를 다시 볼 수 있습니다.',
+    body: '우측 편집 도구는 리스트모드 전용 메뉴에요',
+    details: [
+      '대분류 추가: 대분류를 새로 만들어요',
+      '대분류 순서 변경: 대분류의 순서를 변경해요',
+      '되돌리기 / 다시실행: 변경 기록을 이용해 작업을 되돌릴 수 있어요',
+      '대,중,소분류 보기: 리스트를 펼치거나 접어 각 분류 단계만 펼쳐요',
+      '사용방법 보기: 현재 가이드를 다시 볼 수 있어요',
+    ],
   },
   {
     id: 'drag-handle',
-    target: 'drag-handle',
+    target: 'list-menu-row',
+    actionTarget: 'drag-handle',
+    pointerTarget: 'drag-handle',
+    popoverTarget: 'list-menu-row',
     title: '핸들을 잡고 드래그',
-    body: '왼쪽 점 모양 핸들을 눌러 위아래로 드래그하면 메뉴 순서를 바꿀 수 있어요.',
-    note: '아이템 전체가 아니라 이 핸들을 잡는 동작을 기억해 주세요.',
+    body: '왼쪽 점 모양 핸들을 눌러 위아래로 드래그하면 메뉴 순서를 바꿀 수 있어요',
+    note: '아이템 전체가 아니라 이 핸들을 잡는 동작을 기억해 주세요',
     requireAction: true,
     completeOn: 'pointerdown',
-    actionHint: '강조된 핸들을 한 번 눌러보세요. 실제 이동하지 않아도 됩니다.',
-    doneHint: '좋아요. 이 핸들을 잡고 움직이면 됩니다.',
+    actionHint: '강조된 핸들을 한 번 눌러보세요. 실제 이동하지 않아도 돼요',
+    doneHint: '이렇게 핸들을 잡고 이동시킬 수 있어요',
     demo: 'drag-handle',
-    placement: 'top',
+    placement: 'right',
   },
   {
     id: 'item-actions',
-    target: 'item-actions',
+    target: 'item-action-buttons',
     title: '아이템별 편집 버튼',
-    body: '오른쪽 아이콘 버튼으로 메뉴를 이동하거나 수정, 추가, 삭제할 수 있어요.',
+    body: '오른쪽 아이콘 버튼으로 메뉴를 이동하거나 수정, 추가, 삭제할 수 있어요',
     details: [
-      '(←) 이전 이동: 현재 메뉴를 앞쪽으로 이동합니다.',
-      '(→) 다음 이동: 현재 메뉴를 뒤쪽으로 이동합니다.',
-      '(연필) 이름 수정: 메뉴 이름을 변경합니다.',
-      '(＋) 하위 메뉴 추가: 현재 메뉴 아래에 새 하위 메뉴를 추가합니다.',
-      '(휴지통) 삭제: 현재 메뉴를 삭제합니다.',
+      '(←) 이전 이동: 현재 메뉴를 중분류로 변경해요',
+      '(→) 다음 이동: 현재 메뉴를 소분류로 변경해요',
+      '(연필) 이름 수정: 메뉴 이름을 변경해요',
+      '(＋) 하위 메뉴 추가: 현재 메뉴 아래에 새 하위 메뉴를 추가해요',
+      '(휴지통) 삭제: 현재 메뉴를 삭제해요',
     ],
-    note: '각 아이콘 위에 마우스를 올리면 기능 이름도 확인할 수 있어요.',
+    note: '각 아이콘 위에 마우스를 올리면 기능명 확인이 가능해요',
     requireAction: true,
     completeOn: 'hover',
-    actionHint: '강조된 아이콘 영역에 마우스를 올려보세요.',
-    doneHint: '좋아요. 각 아이콘 위에 올리면 기능 이름도 확인할 수 있습니다.',
+    actionHint: '강조된 아이콘 영역에 마우스를 올려보세요',
+    doneHint: '각 아이콘 위에 마우스를 올리면 기능 이름도 확인할 수 있어요',
     placement: 'right',
   },
   {
     id: 'menu-tooltip',
-    target: 'menu-tooltip',
+    target: 'list-menu-row',
+    actionTarget: 'menu-title-with-desc',
+    pointerTarget: 'menu-title-with-desc',
+    popoverTarget: 'list-menu-row',
     title: '메뉴 설명 확인',
-    body: '메뉴명이 헷갈릴 때는 이름 위에 마우스를 올려 설명 툴팁을 확인해 보세요.',
+    body: '메뉴명이 헷갈릴 때는 이름 위에 마우스를 올려 설명 툴팁을 확인해 보세요',
     requireAction: true,
     completeOn: 'hover',
-    actionHint: '강조된 메뉴명에 마우스를 올려보세요.',
-    doneHint: '좋아요. 어려운 메뉴는 이렇게 설명을 확인하면 됩니다.',
+    actionHint: '강조된 메뉴명에 마우스를 올려보세요',
+    doneHint: '어떤 메뉴인지 모를땐 이렇게 설명을 확인해보세요',
     demo: 'tooltip',
-    placement: 'top',
+    placement: 'right',
   },
   {
     id: 'visual-mode',
     target: 'visual-mode-tab',
     title: '화면에서 편집',
-    body: '"화면에서 편집"을 직접 눌러 비주얼모드로 전환해 보세요.',
+    body: '"화면에서 편집"을 직접 눌러 비주얼모드로 전환해 보세요',
     requireAction: true,
     completeWhen: 'visualModeOn',
-    actionHint: '강조된 "화면에서 편집" 탭을 눌러보세요.',
-    doneHint: '좋아요. 실제 화면처럼 보면서 편집할 수 있습니다.',
+    actionHint: '파란 테두리로 강조된 [화면에서 편집] 버튼을 눌러보세요',
+    doneHint: '이제 실제 화면처럼 보면서 편집할 수 있어요',
   },
   {
     id: 'visual-handle',
-    target: 'visual-handle',
+    target: 'visual-sample-l2-register',
+    pointerTarget: 'visual-sample-l2-register-handle',
+    popoverTarget: 'visual-sample-l2-register',
     title: '비주얼모드 편집',
-    body: '비주얼모드에서도 점 모양 핸들을 잡고 원하는 위치에 놓으면 됩니다.',
-    note: '대분류는 상단 탭 순서, 중분류와 소분류는 허용된 계층 안에서 이동할 수 있습니다.',
+    details: [
+      '대분류: 상단 탭에서 순서만 변경 가능',
+      '중분류: 대분류 내에서는 순서 변경 / 다른 대분류 밑으로는 이동',
+      '소분류: 중분류 내에서는 순서 변경 / 다른 중분류 밑으로는 이동',
+    ],
+    body: '비주얼모드에서도 점 모양 핸들을 잡고 원하는 위치에 놓으면 돼요',
+    note: '가이드에서는 메뉴가 실제로 이동되지 않아요!',
     demo: 'drag-handle',
+    placement: 'right',
   },
   {
     id: 'final-submit-entry',
     target: 'final-submit-button',
     title: '최종 제출 화면으로 이동',
-    body: '이제 "최종 제출" 버튼을 눌러 제출 확인 화면으로 이동해 보세요. 실제 제출은 아직 진행하지 않습니다.',
+    body: '[최종 제출] 버튼을 눌러 제출 확인 화면으로 이동해 보세요. 실제 제출은 아직 진행하지 않아요',
     requireAction: true,
     completeWhen: 'submitFormOpen',
-    actionHint: '강조된 최종 제출 버튼을 눌러 확인 화면으로 이동해 보세요.',
-    doneHint: '제출 확인 화면으로 이동했습니다.',
+    actionHint: '파란 테두리로 강조된 [최종 제출] 버튼을 눌러 최종 확인 화면으로 이동해요',
+    doneHint: '제출 확인 화면으로 이동했어요',
   },
   {
     id: 'submit-intention',
     target: 'submit-intention',
     title: '최종 제출 화면',
-    body: '여기에는 왜 이렇게 메뉴를 배치했는지 간단히 적어 주세요. 현재 메뉴 구성과 변경 로그가 함께 제출됩니다.',
+    body: '여기에는 왜 이렇게 메뉴를 배치했는지 간단히 적어 주세요. 현재 메뉴 구성과 변경 로그가 함께 제출됩니다',
     requireAction: true,
     completeOn: 'input',
-    actionHint: '입력칸을 클릭하거나 한 글자 이상 입력해 보세요.',
-    doneHint: '좋아요. 이 내용은 최종 제출 시 함께 저장됩니다.',
+    actionHint: '입력칸을 클릭하거나 한 글자 이상 입력해 보세요',
+    doneHint: '의견은 최종 제출 시 함께 전송돼요',
   },
   {
     id: 'submit-actions',
     target: 'submit-actions',
     title: '취소와 제출',
-    body: '취소를 누르면 편집 화면으로 돌아가고, 제출을 누르면 현재 메뉴 배치가 최종 저장됩니다.',
+    body: '취소를 누르면 편집 화면으로 돌아가고, 제출을 누르면 현재 메뉴 배치가 최종 제출돼요',
     details: [
-      '취소: 제출하지 않고 이전 화면으로 돌아갑니다.',
-      '제출: 현재 메뉴 배치를 최종 제출합니다.',
+      '취소: 제출하지 않고 이전 화면으로 돌아가요',
+      '제출: 현재 메뉴 배치를 최종 제출해요',
     ],
   },
 ];
@@ -216,6 +239,7 @@ export default function Home() {
   const [showGuide, setShowGuide] = useState(false);
   const [guideStep, setGuideStep] = useState(0);
   const [completedGuideSteps, setCompletedGuideSteps] = useState(() => new Set());
+  const [guideCompleteToast, setGuideCompleteToast] = useState(false);
 
   const menuTreeRef = useRef(initialMenu);
   const changeLogRef = useRef([]);
@@ -787,6 +811,7 @@ export default function Home() {
     setIsPreviewOpen(false);
     setEditModeType('list');
     setIsEditMode(false);
+    setGuideCompleteToast(false);
   };
 
   const markGuideStepComplete = useCallback((stepId) => {
@@ -825,6 +850,16 @@ export default function Home() {
 
   const goToNextGuideStep = () => {
     if (!currentGuideStep) return;
+    if (currentGuideStep.id === 'start-edit') {
+      if (!isEditMode) {
+        handleToggleEdit();
+        return;
+      }
+      markGuideStepComplete('start-edit');
+      prepareGuideStep(GUIDE_STEPS[1]);
+      setGuideStep(1);
+      return;
+    }
     if (currentGuideStep.requireAction && !completedGuideSteps.has(currentGuideStep.id)) return;
     if (guideStep >= GUIDE_STEPS.length - 1) {
       finishGuide();
@@ -839,6 +874,24 @@ export default function Home() {
     const previousStep = Math.max(0, guideStep - 1);
     prepareGuideStep(GUIDE_STEPS[previousStep]);
     setGuideStep(previousStep);
+  };
+
+  const finishGuideFromSubmitScreen = () => {
+    setGuideCompleteToast(true);
+    window.setTimeout(() => {
+      finishGuide();
+    }, 2000);
+  };
+
+  const handleGuideSubmitScreenClick = (event, fallback) => {
+    if (showGuide && isSubmitGuideStep) {
+      event.preventDefault();
+      event.stopPropagation();
+      finishGuideFromSubmitScreen();
+      return;
+    }
+
+    fallback();
   };
 
   const draftStatusLabel = (() => {
@@ -1008,6 +1061,7 @@ export default function Home() {
           redoCount={redoStack.length}
           sidePanelContent={sidePanelContent}
           showGuide={showGuide && isEditMode && editModeType === 'list'}
+          guideStepId={currentGuideStep?.id || ''}
           onShowGuide={() => {
             startFullGuide();
           }}
@@ -1027,6 +1081,7 @@ export default function Home() {
         items={menuTree}
         setItems={handleVisualMenuChange}
         isEditable={isEditMode && editModeType === 'visual'}
+        guideStepId={currentGuideStep?.id || ''}
       />
       {showGuide && currentGuideStep && (
         <GuideOverlay
@@ -1054,6 +1109,12 @@ export default function Home() {
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-10">
+        {guideCompleteToast && (
+          <div className="fixed left-1/2 top-24 z-[9500] -translate-x-1/2 rounded-xl bg-slate-900 px-6 py-4 text-center text-sm font-bold text-white shadow-2xl">
+            <p>가이드가 완료되었습니다.</p>
+            <p className="mt-1 text-xs font-medium text-slate-200">이제 실제 메뉴 편집을 시작해 보세요.</p>
+          </div>
+        )}
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="border-b border-slate-100 pb-5">
             <h1 className="text-2xl font-black text-slate-900">이 상태로 제출하시겠습니까?</h1>
@@ -1092,10 +1153,10 @@ export default function Home() {
           <div className="mt-8 grid gap-3 sm:grid-cols-2" data-guide-id="submit-actions" data-guide-target="submit-actions">
             <button
               type="button"
-              onClick={() => {
+              onClick={(event) => handleGuideSubmitScreenClick(event, () => {
                 setSubmitError('');
                 setSubmitStep('edit');
-              }}
+              })}
               disabled={isLoading}
               className="rounded-lg border border-slate-300 bg-white px-8 py-3 text-base font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
             >
@@ -1103,7 +1164,7 @@ export default function Home() {
             </button>
             <button
               type="button"
-              onClick={handleSubmitForm}
+              onClick={(event) => handleGuideSubmitScreenClick(event, handleSubmitForm)}
               disabled={isLoading}
               className="flex items-center justify-center gap-2 rounded-lg border border-[#004f91] bg-[#004f91] px-8 py-3 text-base font-black text-white shadow-lg transition hover:bg-[#003d70] disabled:border-slate-300 disabled:bg-slate-300"
             >
@@ -1168,6 +1229,7 @@ export default function Home() {
         items={menuTree}
         setItems={handleVisualMenuChange}
         isEditable={false}
+        guideStepId={currentGuideStep?.id || ''}
       />
     </div>
   );
