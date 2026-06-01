@@ -651,19 +651,19 @@ export const initialMenu = [
         "id": "L03CHPL",
         "title": "채플관리",
         "level": 2,
-        "desc": "",
+        "desc": "채플 공지와 이수 현황을 확인하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04CHNT",
             "title": "채플/기독교 공지사항",
             "level": 3,
-            "desc": ""
+            "desc": "채플 구분별 공지와 교과목 개설 현황 등 채플 안내사항을 공지하는 메뉴에요"
           },
           {
             "id": "L04CHST",
             "title": "채플/기독교 이수현황",
             "level": 3,
-            "desc": ""
+            "desc": "전 학기 채플 이수 현황과 취득 점수를 확인하는 메뉴에요"
           }
         ]
       },
@@ -671,37 +671,37 @@ export const initialMenu = [
         "id": "L03SERV",
         "title": "사회봉사",
         "level": 2,
-        "desc": "",
+        "desc": "사회봉사 신청과 활동, 인증을 처리하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04SVNT",
             "title": "사회봉사 공지사항",
             "level": 3,
-            "desc": ""
+            "desc": "사회봉사 신청 안내, 교과 또는 수강 방법을 공지하는 메뉴에요 "
           },
           {
             "id": "L04SVAP",
             "title": "사회봉사 교과목신청",
             "level": 3,
-            "desc": ""
+            "desc": "신청 기간에 사회봉사 교과목을 확인하고 신청하는 메뉴에요. 분반, 참여일, 시간, 정원, 잔여 등을 확인하고 신청할 수 있어요"
           },
           {
             "id": "L04SVCK",
             "title": "신청내역 및 인증 확인",
             "level": 3,
-            "desc": ""
+            "desc": "이번 학기 신청한 나의 사회봉사활동 목록을 확인하고 이전에 참여한 전체 사회봉사활동 결과와 확인서를 출력하는 메뉴에요"
           },
           {
             "id": "L04SVPL",
             "title": "활동계획서 제출",
             "level": 3,
-            "desc": ""
+            "desc": "사회봉사 진행을 위해 활동계획서를 등록하고 제출하는 메뉴에요"
           },
           {
             "id": "L04SVRP",
             "title": "결과보고서 제출",
             "level": 3,
-            "desc": ""
+            "desc": "사회봉사활동 종료 전 활동결과보고서를 등록하고 제출하는 메뉴에요"
           }
         ]
       },
@@ -709,19 +709,19 @@ export const initialMenu = [
         "id": "L03CERT",
         "title": "인증관리",
         "level": 2,
-        "desc": "",
+        "desc": "기타 인증을 처리하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04MCRT",
             "title": "마이크로 전공 인증서",
             "level": 3,
-            "desc": ""
+            "desc": "마이크로전공을 이수한 경우 해당 인증서를 출력하는 메뉴에요"
           },
           {
             "id": "L04AWRD",
             "title": "성적우수상 내역",
             "level": 3,
-            "desc": ""
+            "desc": "현재까지 학기별로 취득한 성적우수상 내역을 확인하는 메뉴에요"
           }
         ]
       },
@@ -729,19 +729,19 @@ export const initialMenu = [
         "id": "L03LEVL",
         "title": "강의평가",
         "level": 2,
-        "desc": "",
+        "desc": "중간고사/기말고사 종료 후 강의를 평가하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04LEVL",
             "title": "강의평가",
             "level": 3,
-            "desc": ""
+            "desc": "현재 수강중인 과목 대상으로 진행되는 최종 강의평가에 참여하는 메뉴에요"
           },
           {
             "id": "L04MLEV",
             "title": "중간강의평가",
             "level": 3,
-            "desc": ""
+            "desc": "현재 수강중인 과목 대상으로 진행되는 중간 강의평가에 참여하는 메뉴에요"
           }
         ]
       },
@@ -755,13 +755,13 @@ export const initialMenu = [
             "id": "L04ABEK",
             "title": "ABEEK 설문조사",
             "level": 3,
-            "desc": ""
+            "desc": "공학 관련 학생이 졸업 시점까지 갖춰야 하는 지식,기술,태도를 성취도로 나타내는 지표에요. ABEEK 관련 교과목 수강 내역과 이수 후 설문조사를 진행하는 메뉴에요"
           },
           {
             "id": "L04PERS",
             "title": "교직 적/인성 검사",
             "level": 3,
-            "desc": ""
+            "desc": "교직이수예정자 또는 교직과정 이수자가 교직과목을 이수하기 위한 적·인성검사를 실시하는 메뉴에요"
           }
         ]
       }
@@ -771,7 +771,7 @@ export const initialMenu = [
     "id": "L02LIFE",
     "title": "대학생활",
     "level": 1,
-    "desc": "",
+    "desc": "재학 중 전주대가 제공하는 대학환경 전반에 대한 메뉴에요. SUPER, StarT, TA, 학생회, 해외 봉사/연수, 공동체 등 참여형 활동으로 구성되어 있어요",
     "children": [
       {
         "id": "L03MAJC",
