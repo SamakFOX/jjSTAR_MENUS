@@ -1581,19 +1581,19 @@ export const initialMenu = [
     "id": "L02STAR",
     "title": "SUPER STAR",
     "level": 1,
-    "desc": "",
+    "desc": "졸업을 위한 메뉴로 구성되어 있어요",
     "children": [
       {
         "id": "L03INDS",
         "title": "산학협력활동",
         "level": 2,
-        "desc": "",
+        "desc": "산학협력 관련 활동으로 구성되어 있어요",
         "children": [
           {
             "id": "L04INDC",
             "title": "산학협력 연구 참여 확인서",
             "level": 3,
-            "desc": ""
+            "desc": "산학협력단에서 진행하는 연구에 참여한 경우 확인서를 출력하는 메뉴에요"
           }
         ]
       },
@@ -1607,25 +1607,25 @@ export const initialMenu = [
             "id": "L04GRDI",
             "title": "졸업이수 기준 정보",
             "level": 3,
-            "desc": ""
+            "desc": "졸업을 위한 나의 졸업학점 취득 현황을 확인하는 메뉴에요. 어떤 학점과 과목을 더 수강해야 하는지 한 눈에 알 수 있어요"
           },
           {
             "id": "L04GRDC",
             "title": "졸업예정자 졸업사정 확인",
             "level": 3,
-            "desc": ""
+            "desc": "졸업예정자 대상 졸업사정(전공내역) 확인을 위한 메뉴에요. 졸업식 참석 여부도 선택할 수 있어요"
           },
           {
             "id": "L04EGRD",
             "title": "조기졸업 신청",
             "level": 3,
-            "desc": ""
+            "desc": "학적 및 나의 졸업을 위한 요건을 확인하고 조기졸업을 신청하는 메뉴에요. 신청 후 진행상황을 실시간으로 확인할 수 있어요"
           },
           {
             "id": "L04DEFR",
             "title": "학사학위 취득유예 신청",
             "level": 3,
-            "desc": ""
+            "desc": "현재 학적을 확인하고 졸업 유예를 신청하는 메뉴에요"
           }
         ]
       }
@@ -1647,7 +1647,7 @@ export const initialMenu = [
             "id": "L04QNAA",
             "title": "Q&A",
             "level": 3,
-            "desc": ""
+            "desc": "각종 학업 관련 질문에 대해 자주 묻는 질문의 답을 확인하는 메뉴에요"
           },
           {
             "id": "L04IFNT",
