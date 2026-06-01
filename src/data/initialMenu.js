@@ -249,67 +249,67 @@ export const initialMenu = [
             "id": "L04DMAP",
             "title": "학생생활관 입사 신청",
             "level": 3,
-            "desc": ""
+            "desc": "기숙사 신청기간에 원하는 건물과 인실을 선택하고 입사신청을 진행하는 메뉴에요"
           },
           {
             "id": "L04DMPG",
             "title": "입사서약서 작성",
             "level": 3,
-            "desc": ""
+            "desc": "입사신청이 완료되면 규정과 서류를 확인하고 서약을 작성하는 메뉴에요"
           },
           {
             "id": "L04ROOM",
             "title": "관실신청",
             "level": 3,
-            "desc": ""
+            "desc": "상세한 건물, 인실, 층수 등을 확인하고 잔여 호실을 신청하는 메뉴에요"
           },
           {
             "id": "L04DMBI",
             "title": "학생생활관비 납입고지서",
             "level": 3,
-            "desc": ""
+            "desc": "신청 학기 기숙사비 납입을 위한 고지서 메뉴에요"
           },
           {
             "id": "L04DMCF",
             "title": "학생생활관비 납부확인서",
             "level": 3,
-            "desc": ""
+            "desc": "신청 학기 기숙사비 납입 후 납부확인서를 발급받는 메뉴에요"
           },
           {
             "id": "L04LATR",
             "title": "늦은귀사신청",
             "level": 3,
-            "desc": ""
+            "desc": "기숙사 통금 시간보다 늦게 귀가할 때 이용하는 메뉴에요 (서류 다운로드 후 운영사무실로 제출 필수)"
           },
           {
             "id": "L04PNTS",
             "title": "상벌점조회",
             "level": 3,
-            "desc": ""
+            "desc": "퇴사 등 불이익을 막기 위해 상벌점을 조회하는 메뉴에요"
           },
           {
             "id": "L04OUTS",
             "title": "외박신청",
             "level": 3,
-            "desc": ""
+            "desc": "기숙사를 비우고 외박할 때 미리 신청하는 메뉴에요. 이전 내역과 승인 여부 등을 조회할 수 있어요"
           },
           {
             "id": "L04SLEP",
             "title": "조기 취침 신청",
             "level": 3,
-            "desc": ""
+            "desc": "기숙사 점호 전 조기 취침을 신청하는 메뉴에요. 이전 내역과 승인 여부 등을 조회할 수 있어요"
           },
           {
             "id": "L04INCV",
             "title": "불편사항 신청",
             "level": 3,
-            "desc": ""
+            "desc": "기숙사 내 불편사항 및 건의사항을 신청하는 메뉴에요. 이전 내역과 처리 여부 등을 조회할 수 있어요"
           },
           {
             "id": "L04LEVD",
             "title": "퇴사 신청",
             "level": 3,
-            "desc": ""
+            "desc": "기숙사 중도 퇴사 등 이용을 종료할 때 퇴사를 신청하는 메뉴에요. 사용 내역과 환불 금액 등을 확인할 수 있어요"
           }
         ]
       },
@@ -317,25 +317,25 @@ export const initialMenu = [
         "id": "L03PROM",
         "title": "학교홍보",
         "level": 2,
-        "desc": "",
+        "desc": "학교 홍보를 위한 메뉴들로 구성되어 있어요",
         "children": [
           {
             "id": "L04SCHP",
             "title": "학교 소개",
             "level": 3,
-            "desc": ""
+            "desc": "학교 소개와 현황을 소개하는 페이지로 연결돼요 (jj.ac.kr/jj/introduction/indicator.do)"
           },
           {
             "id": "L04MAJR",
             "title": "학과 및 전공 소개",
             "level": 3,
-            "desc": ""
+            "desc": "각 학과별 소개와 학과 사이트로 이동할 수 있는 페이지로 연결돼요 (jj.ac.kr/jj/colleges/colleges-Introduction.do)"
           },
           {
             "id": "L04SNSI",
             "title": "SNS 정보",
             "level": 3,
-            "desc": ""
+            "desc": "학교 공식 SNS 리스트로 연결돼요"
           }
         ]
       },
@@ -343,7 +343,7 @@ export const initialMenu = [
         "id": "L03JJMN",
         "title": "JJSTAR 이용 매뉴얼",
         "level": 2,
-        "desc": ""
+        "desc": "jjSTAR를 이용하는 방법을 안내하는 메뉴에요"
       }
     ]
   },
@@ -351,55 +351,55 @@ export const initialMenu = [
     "id": "L02ACAD",
     "title": "학사정보",
     "level": 1,
-    "desc": "",
+    "desc": "학적,교과와 수강,성적 등 학사 관련 메뉴들로 구성되어 있어요",
     "children": [
       {
         "id": "L03ADMN",
         "title": "학사관리",
         "level": 2,
-        "desc": "",
+        "desc": "학사 관련 공지와 필수교육으로 구성된 메뉴에요",
         "children": [
           {
             "id": "L04ADNT",
             "title": "학사관리 공지사항",
             "level": 3,
-            "desc": ""
+            "desc": "학사 일정이나 학업에 도움이 될만한 내용을 공지하는 메뉴에요"
           },
           {
             "id": "L04ADFA",
             "title": "학사관리 FAQ",
             "level": 3,
-            "desc": ""
+            "desc": "자주 묻는 질문을 모아놓은 메뉴에요"
           },
           {
             "id": "L04RULE",
             "title": "학칙개정사항 안내",
             "level": 3,
-            "desc": ""
+            "desc": "개정된 학사제도와 절차를 안내하는 메뉴에요"
           },
           {
             "id": "L04CPRA",
             "title": "심폐소생술 교과목 신청",
             "level": 3,
-            "desc": ""
+            "desc": "특정 학과/학생 대상 필수교육인 심폐소생술 교과목을 신청하는 메뉴에요"
           },
           {
             "id": "L04CPRH",
             "title": "심폐소생술 교과목 신청내역 확인",
             "level": 3,
-            "desc": ""
+            "desc": "신청한 심폐소생술 교과목을 조회하는 메뉴에요"
           },
           {
             "id": "L04AHAL",
             "title": "AHA 바로가기",
             "level": 3,
-            "desc": ""
+            "desc": "법정의무교육을 수강하기 위한 사이트로 이동돼요"
           },
           {
             "id": "L04AHAC",
             "title": "AHA 교육이수증",
             "level": 3,
-            "desc": ""
+            "desc": "이수한 법정의무교육의 이수증을 확인하고 출력하는 메뉴에요"
           }
         ]
       },
@@ -407,31 +407,31 @@ export const initialMenu = [
         "id": "L03CURR",
         "title": "교육과정",
         "level": 2,
-        "desc": "",
+        "desc": "전공 및 교양 교육과정을 확인하고 시뮬레이션할 수 있는 메뉴에요",
         "children": [
           {
             "id": "L04GECR",
             "title": "교양 교육과정 조회",
             "level": 3,
-            "desc": ""
+            "desc": "개설된 교양과목 교육과정을 조회하는 메뉴에요"
           },
           {
             "id": "L04MJCR",
             "title": "전공 교육과정 조회",
             "level": 3,
-            "desc": ""
+            "desc": "개설된 전공과목 교육과정을 조회하는 메뉴에요"
           },
           {
             "id": "L04CRSM",
             "title": "교육과정 시뮬레이션",
             "level": 3,
-            "desc": ""
+            "desc": "나에게 맞는 교육과정을 확인하고 전체 로드맵을 시뮬레이션해보는 메뉴에요"
           },
           {
             "id": "L04MCRR",
             "title": "My 교육과정 조회",
             "level": 3,
-            "desc": ""
+            "desc": "나에게 해당하는 교육과정을 조회하는 메뉴에요"
           }
         ]
       },
@@ -439,61 +439,61 @@ export const initialMenu = [
         "id": "L03COUR",
         "title": "수강관리",
         "level": 2,
-        "desc": "",
+        "desc": "수강신청 및 성적확인과 관련된 메뉴들로 구성되어 있어요",
         "children": [
           {
             "id": "L04BASK",
             "title": "수강바구니",
             "level": 3,
-            "desc": ""
+            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr)"
           },
           {
             "id": "L04ENRA",
             "title": "수강신청",
             "level": 3,
-            "desc": ""
+            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr)"
           },
           {
             "id": "L04DROP",
             "title": "수강취소",
             "level": 3,
-            "desc": ""
+            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr)"
           },
           {
             "id": "L04ENRV",
             "title": "수강신청 내역조회",
             "level": 3,
-            "desc": ""
+            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr)"
           },
           {
             "id": "L04CURV",
             "title": "교육과정조회",
             "level": 3,
-            "desc": ""
+            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr)"
           },
           {
             "id": "L04CLPL",
             "title": "강좌시간표/수업계획서 조회",
             "level": 3,
-            "desc": ""
+            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr)"
           },
           {
             "id": "L04GRDV",
             "title": "졸업이수기준정보조회",
             "level": 3,
-            "desc": ""
+            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr)"
           },
           {
             "id": "L04ATTD",
             "title": "출결확인",
             "level": 3,
-            "desc": ""
+            "desc": "학년/학기별 출결현황을 조회하고 수강신청확인서를 출력하는 메뉴에요"
           },
           {
             "id": "L04ATAP",
             "title": "출석인정신청",
             "level": 3,
-            "desc": ""
+            "desc": "상세 사유를 선택하고 일반 출석인정과 취업 출석인정을 신청하는 메뉴에요"
           }
         ]
       },
