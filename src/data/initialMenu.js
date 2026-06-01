@@ -469,7 +469,7 @@ export const initialMenu = [
             "id": "L04CURV",
             "title": "교육과정조회",
             "level": 3,
-            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr)"
+            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr) - [교육과정 동일메뉴]"
           },
           {
             "id": "L04CLPL",
@@ -481,7 +481,7 @@ export const initialMenu = [
             "id": "L04GRDV",
             "title": "졸업이수기준정보조회",
             "level": 3,
-            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr)"
+            "desc": "수강 사이트로 이동돼요 - 정규수강신청 포함 전 기간 (sugang.jj.ac.kr) - [졸업이수기준 동일메뉴]"
           },
           {
             "id": "L04ATTD",
@@ -501,25 +501,25 @@ export const initialMenu = [
         "id": "L03GRAD",
         "title": "성적관리",
         "level": 2,
-        "desc": "",
+        "desc": "나의 성적 관련해서 조회하고 신청하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04SEMG",
             "title": "학기별성적조회",
             "level": 3,
-            "desc": ""
+            "desc": "연도-학기별 교과목들의 학점, 취득점수, 평점을 확인하고 이의신청을 진행하는 메뉴에요"
           },
           {
             "id": "L04GREJ",
             "title": "성적이의신청",
             "level": 3,
-            "desc": ""
+            "desc": "직전학기 성적 발표 이후 학점, 취득점수, 평점을 확인하고 이의신청을 진행하는 메뉴에요"
           },
           {
             "id": "L04AMC5",
             "title": "성적정보분석 (AMC5)",
             "level": 3,
-            "desc": ""
+            "desc": "성적 정보를 기준으로 전공과 교양 과목의 이수 현황 및 성적 분포를 확인하는 메뉴에요"
           }
         ]
       },
@@ -527,67 +527,67 @@ export const initialMenu = [
         "id": "L03RECD",
         "title": "학적관리",
         "level": 2,
-        "desc": "",
+        "desc": "전공 및 휴복학, 자퇴, 재입학 등 학적 관련 처리를 위한 메뉴들로 구성되어 있어요",
         "children": [
           {
             "id": "L04BASC",
             "title": "학적 기초",
             "level": 3,
-            "desc": ""
+            "desc": "나의 기본 정보를 조회하고 수정하는 메뉴에요"
           },
           {
             "id": "L04DBMJ",
             "title": "복수/부 전공 신청",
             "level": 3,
-            "desc": ""
+            "desc": "복수전공과 부전공을 신청하는 메뉴에요"
           },
           {
             "id": "L04RETN",
             "title": "복학 신청 및 확인",
             "level": 3,
-            "desc": ""
+            "desc": "입대휴학, 일반휴학 등을 포함한 복학을 신청하고 처리 현황을 확인하는 메뉴에요"
           },
           {
             "id": "L04CHMJ",
             "title": "전과전공 선택 신청 및 확인",
             "level": 3,
-            "desc": ""
+            "desc": "전과를 희망하는 전공학과에 전과를 신청하고 처리 현황을 확인하는 메뉴에요"
           },
           {
             "id": "L04DEPT",
             "title": "학과 선택",
             "level": 3,
-            "desc": ""
+            "desc": "자율전공선택제 대상 학생들이 전공(학과)를 선택하는 메뉴에요"
           },
           {
             "id": "L04LEAV",
             "title": "휴학신청",
             "level": 3,
-            "desc": ""
+            "desc": "입대휴학, 일반휴학 등을 포함한 휴학을 신청하고 처리 현황을 확인하는 메뉴에요 [자퇴신청 동일화면]"
           },
           {
             "id": "L04WITH",
             "title": "자퇴신청",
             "level": 3,
-            "desc": ""
+            "desc": "부득이한 사정으로 학업을 계속할 수 없는 경우 자퇴를 신청하는 메뉴에요 [휴학신청 동일화면]"
           },
           {
             "id": "L04READ",
             "title": "재입학 신청",
             "level": 3,
-            "desc": ""
+            "desc": "자퇴 후 재입학을 신청하는 메뉴에요"
           },
           {
             "id": "L04RCIV",
             "title": "학적 변동 정보 조회",
             "level": 3,
-            "desc": ""
+            "desc": "학교 생활 중 휴학, 복학, 전과 등 나의 학적 정보가 변경된 내역을 확인할 수 있는 메뉴에요"
           },
           {
             "id": "L04PAPR",
             "title": "학부모 학사정보조회 승인",
             "level": 3,
-            "desc": ""
+            "desc": "부모님께 나의 학사 정보를 열람할 수 있는 권한을 부여해드리는 메뉴에요"
           }
         ]
       },
@@ -595,55 +595,55 @@ export const initialMenu = [
         "id": "L03CRED",
         "title": "학점신청",
         "level": 2,
-        "desc": "",
+        "desc": "비교과 학점을 신청하는 메뉴들로 구성되어 있어요",
         "children": [
           {
             "id": "L04BEST",
             "title": "beSTAR 신청",
             "level": 3,
-            "desc": ""
+            "desc": "기업 연계형 인턴십인 beSTAR 신청과 결과를 확인하는 메뉴에요"
           },
           {
             "id": "L04LINK",
             "title": "연계/융합 전공 신청",
             "level": 3,
-            "desc": ""
+            "desc": "학점 이수 전 연계, 융합, 마이크로전공 관련하여 이수 신청을 진행하는 메뉴에요 (융합교육센터 승인 후 이수 가능)"
           },
           {
             "id": "L04MCDE",
             "title": "Micro Degree 신청",
             "level": 3,
-            "desc": ""
+            "desc": "학점 이수 전 Micro Degree 관련하여 이수 신청을 진행하는 메뉴에요 (융합교육센터 승인 후 이수 가능)"
           },
           {
             "id": "L04MCMJ",
             "title": "Micro 융합전공 신청",
             "level": 3,
-            "desc": ""
+            "desc": "학점 이수 전 Micro 융합전공 관련하여 이수 신청을 진행하는 메뉴에요 (융합교육센터 승인 후 이수 가능)"
           },
           {
             "id": "L04SELF",
             "title": "자기설계전공 신청",
             "level": 3,
-            "desc": ""
+            "desc": "자기설계전공(주전공15참여30) 참여 신청을 접수하는 메뉴에요 (융합교육센터 승인 후 이수 가능)"
           },
           {
             "id": "L04SPCR",
             "title": "특별학점",
             "level": 3,
-            "desc": ""
+            "desc": "학점인정 교과목과 자격증을 입력하고 특별학점으로 신청하는 메뉴에요"
           },
           {
             "id": "L04KMOC",
             "title": "K-MOOC인정신청",
             "level": 3,
-            "desc": ""
+            "desc": "학교생활 중 K-MOOC 과정을 이수한 경우 학점으로 인정을 신청하는 메뉴에요"
           },
           {
             "id": "L04EXPR",
             "title": "학습경험인정신청",
             "level": 3,
-            "desc": ""
+            "desc": "미래융합대학 학생들 대상으로 교육/자격증/수상/현장경험을 졸업학점으로(최대20%까지) 인정해주는 학습경험(RPL)을 신청하는 메뉴에요"
           }
         ]
       },
