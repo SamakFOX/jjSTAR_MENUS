@@ -887,19 +887,19 @@ export const initialMenu = [
         "id": "L03ETAC",
         "title": "기타 학사 관리",
         "level": 2,
-        "desc": "",
+        "desc": "학교 이용 관련한 기타 메뉴에요",
         "children": [
           {
             "id": "L04ROOMS",
             "title": "강의실 잔류 신청",
             "level": 3,
-            "desc": ""
+            "desc": "일과시간 외 강의실을 이용하기 위해 사용을 신청하고 신청 내역과 신청 상태를 확인하는 메뉴에요. 시작/종료시간, 건물/호실, 인원/명단을 선택하고 신청할 수 있어요"
           },
           {
             "id": "L04ROOMH",
             "title": "강의실 잔류 신청 내역",
             "level": 3,
-            "desc": ""
+            "desc": "나의 강의실 잔류 신청 내역을 확인하는 메뉴에요"
           }
         ]
       },
@@ -907,13 +907,13 @@ export const initialMenu = [
         "id": "L03AWAR",
         "title": "수상내역",
         "level": 2,
-        "desc": "",
+        "desc": "나의 수상내역을 확인하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04AWIN",
             "title": "교내 수상내역",
             "level": 3,
-            "desc": ""
+            "desc": "전체 등록 기간동안 받은 상장 내역을 확인하고 출력하는 메뉴에요"
           }
         ]
       },
@@ -921,31 +921,31 @@ export const initialMenu = [
         "id": "L03STID",
         "title": "학생증",
         "level": 2,
-        "desc": "",
+        "desc": "학생증 안내와 발급/재발급 절차를 안내하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04IDGD",
             "title": "학생증 안내",
             "level": 3,
-            "desc": ""
+            "desc": "교내 학생증이 어떻게 구성되고 어떻게 사용되는지 안내해주는 메뉴에요"
           },
           {
             "id": "L04IDPR",
             "title": "발급절차",
             "level": 3,
-            "desc": ""
+            "desc": "입학 시 신규 발급 절차를 안내해주는 메뉴에요"
           },
           {
             "id": "L04IDLS",
             "title": "분실신고",
             "level": 3,
-            "desc": ""
+            "desc": "학생증 분실 또는 훼손으로 인해 사용이 불가능할 때 신청하는 방법을 안내해주는 메뉴에요"
           },
           {
             "id": "L04IDRE",
             "title": "재발급 절차",
             "level": 3,
-            "desc": ""
+            "desc": "재발급 시 학생증이 발급되기까지의 절차를 안내해주는 메뉴에요"
           }
         ]
       },
@@ -953,25 +953,25 @@ export const initialMenu = [
         "id": "L03CERTI",
         "title": "증명발급",
         "level": 2,
-        "desc": "",
+        "desc": "웹민원을 통한 증명발급으로 구성된 메뉴에요",
         "children": [
           {
             "id": "L04CEGD",
             "title": "인터넷 증명발금 안내",
             "level": 3,
-            "desc": ""
+            "desc": "인터넷 발급이 가능한 증명 문서를 발급하는 메뉴에요 (www.webminwon.co.kr)"
           },
           {
             "id": "L04CEIS",
             "title": "제증명 발급",
             "level": 3,
-            "desc": ""
+            "desc": "인터넷 발급이 가능한 증명 문서를 발급하는 메뉴에요 (www.webminwon.co.kr)"
           },
           {
             "id": "L04CEHI",
             "title": "제증명 발급내역",
             "level": 3,
-            "desc": ""
+            "desc": "인터넷으로 발급한 증명 문서를 확인하고 출력할 수 있는 메뉴에요"
           }
         ]
       },
@@ -985,25 +985,25 @@ export const initialMenu = [
             "id": "L04SUPE",
             "title": "SUPER 핵심역량",
             "level": 3,
-            "desc": ""
+            "desc": "SUPER 핵심역량이 무엇인지, CAP가 무엇으로 구성되는지 안내해주는 메뉴에요"
           },
           {
             "id": "L04SUCI",
             "title": "SUPER 핵심역량 인증 정보",
             "level": 3,
-            "desc": ""
+            "desc": "나의 SUPER 핵심역량 인증 현황을 확인하는 메뉴에요"
           },
           {
             "id": "L04SUDG",
             "title": "SUPER 핵심역량 진단검사",
             "level": 3,
-            "desc": ""
+            "desc": "현재 나의 핵심역량이 어느 수준인지 진단할 수 있는 메뉴에요"
           },
           {
             "id": "L04SURS",
             "title": "SUPER 핵심역량 진단평가 결과 분석",
             "level": 3,
-            "desc": ""
+            "desc": "진단 평가 결과를 기반으로 나의 역량을 확인해보는 메뉴에요"
           }
         ]
       },
@@ -1017,43 +1017,43 @@ export const initialMenu = [
             "id": "L043CAT",
             "title": "3C활동 안내",
             "level": 3,
-            "desc": ""
+            "desc": "StarT 프로그램 내의 3C (Challenge, Competence, Community)활동이 무엇인지 주요 내용을 설명하는 메뉴에요"
           },
           {
             "id": "L04TRCK",
             "title": "starT 트랙제도",
             "level": 3,
-            "desc": ""
+            "desc": "두가지로 나뉜 StarT 트랙에 따라 달라니는 신청 방법에 대해 안내해주는 메뉴에요"
           },
           {
             "id": "L04STPG",
             "title": "starT 프로그램 소개",
             "level": 3,
-            "desc": ""
+            "desc": "StarT 프로그램이 바라보는 방향성이 무엇인지 소개하는 메뉴에요"
           },
           {
             "id": "L04STBF",
             "title": "starT 주요혜택",
             "level": 3,
-            "desc": ""
+            "desc": "StarT 참여 시 주어지는 혜택들과 대학생활에서 얻는 이점을 안내해주는 메뉴에요"
           },
           {
             "id": "L04STOH",
             "title": "starT 온라인 신청내역",
             "level": 3,
-            "desc": ""
+            "desc": "신청한 StarT를 확인하거나 새로운 Star프로그램을 신청하는 메뉴에요"
           },
           {
             "id": "L04STHS",
             "title": "starT 신청 현황",
             "level": 3,
-            "desc": ""
+            "desc": "이전에 신청한 StarT 프로그램 내역을 확인하고 진행/취소 상태와 사유를 확인하는 메뉴에요"
           },
           {
             "id": "L04STCF",
             "title": "starT 활동 인증",
             "level": 3,
-            "desc": ""
+            "desc": "StarT 활동 내역과 CP SP 획득 내역을 그래프로 확인하는 메뉴에요"
           }
         ]
       },
@@ -1061,19 +1061,19 @@ export const initialMenu = [
         "id": "L03TAOP",
         "title": "원격교육 TA 운영",
         "level": 2,
-        "desc": "",
+        "desc": "TA 운영과 내역을 확인하는 메뉴에요",
         "children": [
           {
             "id": "L04TALG",
             "title": "TA 근무일지 입력",
             "level": 3,
-            "desc": ""
+            "desc": "TA 근무 시 프로그램과 활동일지를 작성하고 관리하는 메뉴에요"
           },
           {
             "id": "L04TAHI",
             "title": "TA 근무일지 내역",
             "level": 3,
-            "desc": ""
+            "desc": "전체 TA 이용 내역을 조회하고 근무 피드백을 받을 수 있는 메뉴에요"
           }
         ]
       },
@@ -1081,19 +1081,19 @@ export const initialMenu = [
         "id": "L03STCN",
         "title": "학생회 활동",
         "level": 2,
-        "desc": "",
+        "desc": "학생회 관련 메뉴들로 구성되어 있어요",
         "children": [
           {
             "id": "L04ELCT",
             "title": "총학생회 선거",
             "level": 3,
-            "desc": ""
+            "desc": "선거시즌이 되면 선거 정보와 후보자 데이터를 확인할 수 있는 메뉴에요"
           },
           {
             "id": "L04STCH",
             "title": "학생회 활동 내역",
             "level": 3,
-            "desc": ""
+            "desc": "학생회 활동 내역과 의결사항을 한눈에 확인하는 메뉴에요"
           }
         ]
       },
@@ -1101,37 +1101,37 @@ export const initialMenu = [
         "id": "L03LFCN",
         "title": "대학생활 상담",
         "level": 2,
-        "desc": "",
+        "desc": "대학생활 중 겪는 어려움을 해결하기 위한 상담메뉴에요",
         "children": [
           {
             "id": "L04LFGD",
             "title": "상담 안내",
             "level": 3,
-            "desc": ""
+            "desc": "상담 절차와 방법을 안내해주는 메뉴에요"
           },
           {
             "id": "L04LF11",
             "title": "1:1 상담",
             "level": 3,
-            "desc": ""
+            "desc": "상담자분을 지정하고 상담 구분과 날짜를 선택해 상담을 신청하는 메뉴에요"
           },
           {
             "id": "L04LFMT",
             "title": "멘토링",
             "level": 3,
-            "desc": ""
+            "desc": "멘토 선택과 멘티 관리를 위한 메뉴에요, 또래상담도 여기서 관리해요"
           },
           {
             "id": "L04LFON",
             "title": "온라인 상담 신청",
             "level": 3,
-            "desc": ""
+            "desc": "온라인으로 상담자를 지정하고 상담 내용을 입력해 상담을 요청하는 메뉴에요"
           },
           {
             "id": "L04LFPS",
             "title": "카운슬링센터 심리 검사",
             "level": 3,
-            "desc": ""
+            "desc": "카운슬링센터에서 제공하는 온라인 심리검사 4종을 진행하는 메뉴에요"
           }
         ]
       }
@@ -1141,43 +1141,43 @@ export const initialMenu = [
     "id": "L02CARE",
     "title": "진로개발",
     "level": 1,
-    "desc": "",
+    "desc": "비교과, 개인프로젝트, 팀프로젝트, 캡스톤 및 개인 커리어로드맵을 통해 나의 진로 방향을 확고하게 다지기 위한 메뉴로 구성되어 있어요",
     "children": [
       {
         "id": "L03NCUR",
         "title": "비교과 프로그램",
         "level": 2,
-        "desc": "",
+        "desc": "비교과 프로그램 참여와 이수 등에 관한 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04NCRD",
             "title": "비교과 프로그램 추천",
             "level": 3,
-            "desc": ""
+            "desc": "AI에 기반한 비교과 프로그램 추천 시스템입니다"
           },
           {
             "id": "L04NCAP",
             "title": "비교과 참여 신청",
             "level": 3,
-            "desc": ""
+            "desc": "개설된 비교과 목록을 확인하고 신청하는 메뉴에요"
           },
           {
             "id": "L04NCHS",
             "title": "비교과 활동 신청 및 이수 현황",
             "level": 3,
-            "desc": ""
+            "desc": "이전에 신청한 비교과 활동의 이수 현황과 만족도 조사를 진행하는 메뉴에요"
           },
           {
             "id": "L04NCSV",
             "title": "비교과 만족도 조사",
             "level": 3,
-            "desc": ""
+            "desc": "이전에 신청한 비교과 활동의 이수 현황과 만족도 조사를 진행하는 메뉴에요"
           },
           {
             "id": "L04NCCF",
             "title": "비교과 활동 증명서",
             "level": 3,
-            "desc": ""
+            "desc": "나의 비교과 참여 프로그램 목록과 역량별 내역에 대한 증명서를 발급하는 메뉴에요"
           }
         ]
       },
@@ -1185,43 +1185,43 @@ export const initialMenu = [
         "id": "L03CRMP",
         "title": "커리어로드맵",
         "level": 2,
-        "desc": "",
+        "desc": "나만의 커리어 로드맵을 설계하고 관리하며, 체계적인 경력 관리를 지원하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04TGJB",
             "title": "목표직무 탐색",
             "level": 3,
-            "desc": ""
+            "desc": "나에게 맞는 직무와 직업을 탐색할 수 있는 메뉴에요(학과별, 전공별 매칭도 확인 가능)"
           },
           {
             "id": "L04INJB",
             "title": "관심직무 자가진단",
             "level": 3,
-            "desc": ""
+            "desc": "NCS 직무에 기반한 JJCS 관심직무를 살펴보고 나에게 맞는 목표직무를 설정하는 메뉴에요"
           },
           {
             "id": "L04MJDV",
             "title": "My 직무개발현황",
             "level": 3,
-            "desc": ""
+            "desc": "설정한 목표 직무를 기준으로 해당하는 과목과 역량을 얼마나 취득했는지 점검하는 메뉴에요"
           },
           {
             "id": "L04DCRM",
             "title": "학과별 커리어로드맵",
             "level": 3,
-            "desc": ""
+            "desc": "학과가 제시하는 우리 학과의 권장 로드맵을 확인하고 따라갈 수 있도록 마련된 메뉴에요"
           },
           {
             "id": "L04MCRM",
             "title": "My 커리어로드맵",
             "level": 3,
-            "desc": ""
+            "desc": "내가 원하는 직무에 맞게 나만의 로드맵을 만들고 달성 여부를 확인하는 메뉴에요"
           },
           {
             "id": "L04LEAD",
             "title": "선도학생 커리어패스",
             "level": 3,
-            "desc": ""
+            "desc": "학교에서 선발하는 선도학생들의 커리어 로드맵을 조회하고 방향성을 찾을 수 있는 메뉴에요"
           }
         ]
       },
@@ -1229,31 +1229,107 @@ export const initialMenu = [
         "id": "L03JOBE",
         "title": "직무탐색",
         "level": 2,
-        "desc": "",
+        "desc": "외부 기준과 내부 기준을 활용해 나에게 맞는 직무를 탐색할 수 있는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04JBCP",
             "title": "직무역량 소개",
             "level": 3,
-            "desc": ""
+            "desc": "직무의 정의와 직무 설정의 필요성에 대해 안내하는 메뉴에요"
           },
           {
             "id": "L04NCSJ",
             "title": "NCS 직무탐색",
             "level": 3,
-            "desc": ""
+            "desc": "NCS가 제공하는 직무 분류와 상세 조건을 확인하고 나와 맞는 직무를 찾아가는 메뉴에요"
           },
           {
             "id": "L04WORK",
             "title": "워크넷 직무탐색",
             "level": 3,
-            "desc": ""
+            "desc": "워크넷이 제공하는 직무 분류와 상세 조건을 확인하고 나와 맞는 직무를 찾아가는 메뉴에요"
           },
           {
             "id": "L04JBEF",
             "title": "직무역량 탐색",
             "level": 3,
-            "desc": ""
+            "desc": "전주대가 제공하는 직무 분류와 상세 조건을 확인하고 나와 맞는 직무를 찾아가는 메뉴에요"
+          }
+        ]
+      },
+      {
+        "id": "L03CRCN",
+        "title": "진로상담",
+        "level": 2,
+        "desc": "진로와 관련된 상담을 신청하고 확인할 수 있는 메뉴로 구성되어 있어요",
+        "children": [
+          {
+            "id": "L04CRCG",
+            "title": "상담안내",
+            "level": 3,
+            "desc": "상담 절차와 방법을 안내해주는 메뉴에요"
+          },
+          {
+            "id": "L04CR11",
+            "title": "1:1 상담",
+            "level": 3,
+            "desc": "상담자분을 지정하고 상담 구분과 날짜를 선택해 상담을 신청하는 메뉴에요"
+          },
+          {
+            "id": "L04CRMT",
+            "title": "멘토링",
+            "level": 3,
+            "desc": "멘토 선택과 멘티 관리를 위한 메뉴에요, 또래상담도 여기서 관리해요"
+          },
+          {
+            "id": "L04CRON",
+            "title": "온라인 상담 신청",
+            "level": 3,
+            "desc": "온라인으로 상담자를 지정하고 상담 내용을 입력해 상담을 요청하는 메뉴에요"
+          },
+          {
+            "id": "L04CRPS",
+            "title": "카운슬링센터 심리 검사",
+            "level": 3,
+            "desc": "카운슬링센터에서 제공하는 온라인 심리검사 4종을 진행하는 메뉴에요"
+          }
+        ]
+      },
+      {
+        "id": "L03CRDG",
+        "title": "진단검사",
+        "level": 2,
+        "desc": "각종 온라인 검사들로 구성된 메뉴에요",
+        "children": [
+          {
+            "id": "L04CRTI",
+            "title": "우리대학 진단 검사 안내",
+            "level": 3,
+            "desc": "전주대가 제공하는 진단검사들을 한눈에 알려주는 메뉴에요"
+          },
+          {
+            "id": "L04CRMB",
+            "title": "성격검사(MBTI)",
+            "level": 3,
+            "desc": "학업 스타일에 따른 공부법을 추천받기 위해 성격검사를 진행하는 메뉴에요"
+          },
+          {
+            "id": "L04CRUI",
+            "title": "학습유형검사(U&I)",
+            "level": 3,
+            "desc": "나의 학습 유형을 점검하고 개선점을 찾기 위해 U&I 검사를 진행하는 메뉴에요"
+          },
+          {
+            "id": "L04CRST",
+            "title": "직업흥미검사(STRONG)",
+            "level": 3,
+            "desc": "나와 맞는 직업은 무엇인지 추천받기 위해 STRONG 검사를 진행하는 메뉴에요"
+          },
+          {
+            "id": "L04CRET",
+            "title": "기타 진단검사",
+            "level": 3,
+            "desc": "그 외 센터에서 제공하는 4종의 추가검사를 진행하는 메뉴에요"
           }
         ]
       },
