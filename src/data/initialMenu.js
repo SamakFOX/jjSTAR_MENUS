@@ -1447,31 +1447,31 @@ export const initialMenu = [
     "id": "L02JOBS",
     "title": "취업지원",
     "level": 1,
-    "desc": "",
+    "desc": "취창업을 위한 메뉴로 구성되어 있어요",
     "children": [
       {
         "id": "L03STUP",
         "title": "창업",
         "level": 2,
-        "desc": "",
+        "desc": "창업을 위한 사업과 장학금 등을 조회하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04STNT",
             "title": "창업 공지사항",
             "level": 3,
-            "desc": ""
+            "desc": "창업 마일리지, 장학금, 창업 지원사업 등 관련 내용을 공지하는 메뉴에요"
           },
           {
             "id": "L04BIZH",
             "title": "사업참여이력",
             "level": 3,
-            "desc": ""
+            "desc": "창업 관련한 사업과 강좌 비교과 참여 이력을 확인하고 개인별 참여 이력은 증빙서류 첨부를 통해 인정신청하는 메뉴에요"
           },
           {
             "id": "L04STSC",
             "title": "창업 장학금 신청",
             "level": 3,
-            "desc": ""
+            "desc": "기존 이수한 창업 마일리지에 따라 장학금을 신청하는 메뉴에요"
           }
         ]
       },
@@ -1479,37 +1479,37 @@ export const initialMenu = [
         "id": "L03EMPI",
         "title": "취업정보",
         "level": 2,
-        "desc": "",
+        "desc": "취업을 위한 사업과 채용 정보를 조회하는 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04INJP",
             "title": "교내 채용 정보",
             "level": 3,
-            "desc": ""
+            "desc": "교내 및 연계기관 채용 정보를 조회하는 메뉴에요"
           },
           {
             "id": "L04COMP",
             "title": "기업 정보",
             "level": 3,
-            "desc": ""
+            "desc": "원하는 기업 정보를 조회하고 담당자와 채용 여부를 확인할 수 있는 메뉴에요"
           },
           {
             "id": "L04MTJP",
             "title": "맞춤형 채용정보",
             "level": 3,
-            "desc": ""
+            "desc": "빅데이터센터에서 수집한 데이터를 기반으로 소속 학과에 맞는 채용정보를 확인할 수 있는 메뉴에요"
           },
           {
             "id": "L04REQJ",
             "title": "기관요청 채용정보",
             "level": 3,
-            "desc": ""
+            "desc": "내외부 기관 요청으로 채용을 진행할 때 채용정보가 올라오는 메뉴에요"
           },
           {
             "id": "L04PTJP",
             "title": "채용포털 채용정보",
             "level": 3,
-            "desc": ""
+            "desc": "고용24와 잡코리아의 채용 정보를 실시간으로 보여주는 메뉴에요"
           }
         ]
       },
@@ -1517,7 +1517,7 @@ export const initialMenu = [
         "id": "L03INTR",
         "title": "현장실습학기제",
         "level": 2,
-        "desc": "",
+        "desc": "현장실습학기제 신청 및 관리에 대한 메뉴로 구성되어 있어요",
         "children": [
           {
             "id": "L04INFA",
