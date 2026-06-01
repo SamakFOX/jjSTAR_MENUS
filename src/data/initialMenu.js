@@ -1635,13 +1635,13 @@ export const initialMenu = [
     "id": "L02INFO",
     "title": "정보공유",
     "level": 1,
-    "desc": "",
+    "desc": "학생들을 위한 정보들로 구성되어 있어요",
     "children": [
       {
         "id": "L03CMTY",
         "title": "커뮤니티",
         "level": 2,
-        "desc": "",
+        "desc": "학생들을 위한 정보들로 구성되어 있어요",
         "children": [
           {
             "id": "L04QNAA",
@@ -1653,19 +1653,19 @@ export const initialMenu = [
             "id": "L04IFNT",
             "title": "공지사항",
             "level": 3,
-            "desc": ""
+            "desc": "커뮤니티 이벤트와 특별한 사항에 대해 공지하는 메뉴에요"
           },
           {
             "id": "L04SURV",
             "title": "설문조사",
             "level": 3,
-            "desc": ""
+            "desc": "교내외 설문조사 목록을 확인하고 참여하는 메뉴에요"
           },
           {
             "id": "L04FARE",
             "title": "시설 관련 요청",
             "level": 3,
-            "desc": ""
+            "desc": "시설 이용 중 불편한 점이나 고장을 접수하고 개선을 요청하는 메뉴에요"
           }
         ]
       },
@@ -1673,13 +1673,13 @@ export const initialMenu = [
         "id": "L03ETCS",
         "title": "기타",
         "level": 2,
-        "desc": "",
+        "desc": "중복메뉴",
         "children": [
           {
             "id": "L04ETFA",
             "title": "시설 관련 요청",
             "level": 3,
-            "desc": ""
+            "desc": "시설 이용 중 불편한 점이나 고장을 접수하고 개선을 요청하는 메뉴에요 [중복메뉴]"
           }
         ]
       }
@@ -1689,7 +1689,7 @@ export const initialMenu = [
     "id": "L02MYPG",
     "title": "My Page",
     "level": 1,
-    "desc": "",
+    "desc": "나(개인)에게 필요한 메뉴들로 구성되어 있어요",
     "children": [
       {
         "id": "L03MYIN",
@@ -1701,43 +1701,43 @@ export const initialMenu = [
             "id": "L04MYIF",
             "title": "My 정보",
             "level": 3,
-            "desc": ""
+            "desc": "내 관심사와 SUPER핵심역량, 비교과 활동 내역 등을 확인하는 메뉴에요"
           },
           {
             "id": "L04MYCP",
             "title": "My 역량개발",
             "level": 3,
-            "desc": ""
+            "desc": "SUPER핵심역량 개발 현황(참여 현황)과 교양/비교과/StarT 영역별 이수 현황을 확인하는 메뉴에요"
           },
           {
             "id": "L04MYJB",
             "title": "My 직무역량",
             "level": 3,
-            "desc": ""
+            "desc": "내 교과/비교과/현재수행과정/어학/자격/활동을 기반으로 직무 프로그램을 추천하고 자격증 취득을 도와주는 메뉴에요"
           },
           {
             "id": "L04MYLF",
             "title": "My 대학생활 로드맵",
             "level": 3,
-            "desc": ""
+            "desc": "입학부터 졸업까지 달성할 목표를 모두 정하고 로드맵을 따라 점수를 취득해 목표를 이루도록 도와주는 메뉴에요"
           },
           {
             "id": "L04MYCR",
             "title": "My 커리어",
             "level": 3,
-            "desc": ""
+            "desc": "나의 이력서/자소서/Dream-JOB/포트폴리오 등을 이용해서 커리어를 채우는 메뉴에요"
           },
           {
             "id": "L04PREX",
             "title": "입학 전 학습경험 등록",
             "level": 3,
-            "desc": ""
+            "desc": "미래융합대학 학생들 대상으로 교육/자격증/수상/현장경험을 졸업학점으로(최대20%까지) 인정해주는 학습경험(RPL)을 신청하는 메뉴에요"
           },
           {
             "id": "L04EXCH",
             "title": "학습경험 인증 현황",
             "level": 3,
-            "desc": ""
+            "desc": "경험학습(ex. 비교과 투게더 프로그램 등) 참여 내역과 신청한 학점인증 현황을 인증서로 출력하는 메뉴에요"
           }
         ]
       }
