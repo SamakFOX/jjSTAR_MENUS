@@ -24,6 +24,236 @@ const STORAGE_KEYS = {
 
 const HISTORY_LIMIT = 20;
 const AUTO_SAVE_INTERVAL_MS = 30000;
+const AUTH_CODE_MAX_LENGTH = 20;
+
+const KEY_CODE_TO_CHAR = {
+  KeyA: 'A',
+  KeyB: 'B',
+  KeyC: 'C',
+  KeyD: 'D',
+  KeyE: 'E',
+  KeyF: 'F',
+  KeyG: 'G',
+  KeyH: 'H',
+  KeyI: 'I',
+  KeyJ: 'J',
+  KeyK: 'K',
+  KeyL: 'L',
+  KeyM: 'M',
+  KeyN: 'N',
+  KeyO: 'O',
+  KeyP: 'P',
+  KeyQ: 'Q',
+  KeyR: 'R',
+  KeyS: 'S',
+  KeyT: 'T',
+  KeyU: 'U',
+  KeyV: 'V',
+  KeyW: 'W',
+  KeyX: 'X',
+  KeyY: 'Y',
+  KeyZ: 'Z',
+  Digit0: '0',
+  Digit1: '1',
+  Digit2: '2',
+  Digit3: '3',
+  Digit4: '4',
+  Digit5: '5',
+  Digit6: '6',
+  Digit7: '7',
+  Digit8: '8',
+  Digit9: '9',
+  Numpad0: '0',
+  Numpad1: '1',
+  Numpad2: '2',
+  Numpad3: '3',
+  Numpad4: '4',
+  Numpad5: '5',
+  Numpad6: '6',
+  Numpad7: '7',
+  Numpad8: '8',
+  Numpad9: '9',
+};
+
+const KOR_TO_ENG = {
+  '\u3131': 'R',
+  '\u3132': 'RR',
+  '\u3134': 'S',
+  '\u3137': 'E',
+  '\u3138': 'EE',
+  '\u3139': 'F',
+  '\u3141': 'A',
+  '\u3142': 'Q',
+  '\u3143': 'QQ',
+  '\u3145': 'T',
+  '\u3146': 'TT',
+  '\u3147': 'D',
+  '\u3148': 'W',
+  '\u3149': 'WW',
+  '\u314a': 'C',
+  '\u314b': 'Z',
+  '\u314c': 'X',
+  '\u314d': 'V',
+  '\u314e': 'G',
+  '\u314f': 'K',
+  '\u3150': 'O',
+  '\u3151': 'I',
+  '\u3152': 'O',
+  '\u3153': 'J',
+  '\u3154': 'P',
+  '\u3155': 'U',
+  '\u3156': 'P',
+  '\u3157': 'H',
+  '\u3158': 'HK',
+  '\u3159': 'HO',
+  '\u315a': 'HL',
+  '\u315b': 'Y',
+  '\u315c': 'N',
+  '\u315d': 'NJ',
+  '\u315e': 'NP',
+  '\u315f': 'NL',
+  '\u3160': 'B',
+  '\u3161': 'M',
+  '\u3162': 'ML',
+  '\u3163': 'L',
+};
+
+const CHO = [
+  '\u3131',
+  '\u3132',
+  '\u3134',
+  '\u3137',
+  '\u3138',
+  '\u3139',
+  '\u3141',
+  '\u3142',
+  '\u3143',
+  '\u3145',
+  '\u3146',
+  '\u3147',
+  '\u3148',
+  '\u3149',
+  '\u314a',
+  '\u314b',
+  '\u314c',
+  '\u314d',
+  '\u314e',
+];
+
+const JUNG = [
+  '\u314f',
+  '\u3150',
+  '\u3151',
+  '\u3152',
+  '\u3153',
+  '\u3154',
+  '\u3155',
+  '\u3156',
+  '\u3157',
+  '\u3158',
+  '\u3159',
+  '\u315a',
+  '\u315b',
+  '\u315c',
+  '\u315d',
+  '\u315e',
+  '\u315f',
+  '\u3160',
+  '\u3161',
+  '\u3162',
+  '\u3163',
+];
+
+const JONG = [
+  '',
+  '\u3131',
+  '\u3132',
+  '\u3133',
+  '\u3134',
+  '\u3135',
+  '\u3136',
+  '\u3137',
+  '\u3139',
+  '\u313a',
+  '\u313b',
+  '\u313c',
+  '\u313d',
+  '\u313e',
+  '\u313f',
+  '\u3140',
+  '\u3141',
+  '\u3142',
+  '\u3144',
+  '\u3145',
+  '\u3146',
+  '\u3147',
+  '\u3148',
+  '\u314a',
+  '\u314b',
+  '\u314c',
+  '\u314d',
+  '\u314e',
+];
+
+const JONG_TO_ENG = {
+  '': '',
+  '\u3131': 'R',
+  '\u3132': 'RR',
+  '\u3133': 'RT',
+  '\u3134': 'S',
+  '\u3135': 'SW',
+  '\u3136': 'SG',
+  '\u3137': 'E',
+  '\u3139': 'F',
+  '\u313a': 'FR',
+  '\u313b': 'FA',
+  '\u313c': 'FQ',
+  '\u313d': 'FT',
+  '\u313e': 'FX',
+  '\u313f': 'FV',
+  '\u3140': 'FG',
+  '\u3141': 'A',
+  '\u3142': 'Q',
+  '\u3144': 'QT',
+  '\u3145': 'T',
+  '\u3146': 'TT',
+  '\u3147': 'D',
+  '\u3148': 'W',
+  '\u314a': 'C',
+  '\u314b': 'Z',
+  '\u314c': 'X',
+  '\u314d': 'V',
+  '\u314e': 'G',
+};
+
+function hangulToKeyboardEnglish(char) {
+  const code = char.charCodeAt(0);
+
+  if (code >= 0xac00 && code <= 0xd7a3) {
+    const offset = code - 0xac00;
+    const cho = Math.floor(offset / 588);
+    const jung = Math.floor((offset % 588) / 28);
+    const jong = offset % 28;
+
+    return (
+      (KOR_TO_ENG[CHO[cho]] || '') +
+      (KOR_TO_ENG[JUNG[jung]] || '') +
+      (JONG_TO_ENG[JONG[jong]] || '')
+    );
+  }
+
+  return KOR_TO_ENG[char] || char;
+}
+
+function normalizeAuthCode(value) {
+  return String(value || '')
+    .split('')
+    .map(hangulToKeyboardEnglish)
+    .join('')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, AUTH_CODE_MAX_LENGTH);
+}
 const DEFAULT_USER_NAME = '메뉴 배치 테스트 참여자';
 const GUIDE_STEPS = [
   {
@@ -265,6 +495,7 @@ export default function Home() {
   const undoStackRef = useRef([]);
   const redoStackRef = useRef([]);
   const submitIntentionRef = useRef('');
+  const skipNextLoginCodeChangeRef = useRef(false);
 
   useEffect(() => {
     menuTreeRef.current = menuTree;
@@ -565,7 +796,7 @@ export default function Home() {
   const handleStart = async () => {
     if (isLoading) return;
 
-    const code = loginCode.trim().toUpperCase();
+    const code = normalizeAuthCode(loginCode);
 
     if (!code) {
       setLoginError('인증코드를 입력해주세요.');
@@ -631,6 +862,94 @@ export default function Home() {
   const handleLoginSubmit = (event) => {
     event.preventDefault();
     handleStart();
+  };
+
+  const getLoginCodeSelection = (input) => {
+    const start = input.selectionStart ?? loginCode.length;
+    const end = input.selectionEnd ?? start;
+
+    return {
+      start: Math.min(start, end),
+      end: Math.max(start, end),
+    };
+  };
+
+  const replaceLoginCodeSelection = (input, nextText) => {
+    const { start, end } = getLoginCodeSelection(input);
+    return normalizeAuthCode(`${loginCode.slice(0, start)}${nextText}${loginCode.slice(end)}`);
+  };
+
+  const handleLoginCodeKeyDown = (event) => {
+    const { key } = event;
+
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
+
+    if (key === 'Backspace') {
+      event.preventDefault();
+      const { start, end } = getLoginCodeSelection(event.currentTarget);
+      const deleteStart = start === end ? Math.max(0, start - 1) : start;
+      setLoginCode(normalizeAuthCode(`${loginCode.slice(0, deleteStart)}${loginCode.slice(end)}`));
+      return;
+    }
+
+    if (key === 'Delete') {
+      event.preventDefault();
+      const { start, end } = getLoginCodeSelection(event.currentTarget);
+      const deleteEnd = start === end ? Math.min(loginCode.length, end + 1) : end;
+      setLoginCode(normalizeAuthCode(`${loginCode.slice(0, start)}${loginCode.slice(deleteEnd)}`));
+      return;
+    }
+
+    if (key === 'Enter' || key === 'Tab') {
+      return;
+    }
+
+    if (key.startsWith('F')) {
+      return;
+    }
+
+    if (
+      key === 'ArrowLeft' ||
+      key === 'ArrowRight' ||
+      key === 'ArrowUp' ||
+      key === 'ArrowDown' ||
+      key === 'Home' ||
+      key === 'End'
+    ) {
+      return;
+    }
+
+    const nextChar = KEY_CODE_TO_CHAR[event.code];
+
+    if (!nextChar) {
+      event.preventDefault();
+      return;
+    }
+
+    event.preventDefault();
+    skipNextLoginCodeChangeRef.current = true;
+    setLoginCode(replaceLoginCodeSelection(event.currentTarget, nextChar));
+    window.setTimeout(() => {
+      skipNextLoginCodeChangeRef.current = false;
+    }, 0);
+  };
+
+  const handleLoginCodeChange = (event) => {
+    if (skipNextLoginCodeChangeRef.current) {
+      skipNextLoginCodeChangeRef.current = false;
+      return;
+    }
+
+    setLoginCode(normalizeAuthCode(event.target.value));
+  };
+
+  const handleLoginCodePaste = (event) => {
+    event.preventDefault();
+
+    const pasted = event.clipboardData.getData('text');
+    setLoginCode(replaceLoginCodeSelection(event.currentTarget, pasted));
   };
 
   const handleReset = () => {
@@ -979,9 +1298,14 @@ export default function Home() {
         <input
           type="text"
           value={loginCode}
-          onChange={(event) => setLoginCode(event.target.value.toUpperCase())}
+          onKeyDown={handleLoginCodeKeyDown}
+          onChange={handleLoginCodeChange}
+          onPaste={handleLoginCodePaste}
           placeholder="인증코드를 입력해주세요"
           className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#004f91] focus:bg-white outline-none transition-all text-lg font-sans tracking-normal placeholder:tracking-normal placeholder:font-sans"
+          autoComplete="off"
+          spellCheck={false}
+          inputMode="text"
           autoFocus
         />
 
