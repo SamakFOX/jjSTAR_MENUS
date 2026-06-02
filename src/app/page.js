@@ -211,6 +211,25 @@ const toKoreanError = (message) => {
   return messages[message] || message;
 };
 
+const logVisitSafely = (authCode, eventType = 'login_success') => {
+  try {
+    fetch('/api/visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        authCode,
+        eventType,
+        path: window.location.pathname,
+        referrer: document.referrer,
+        userAgent: navigator.userAgent,
+      }),
+    }).catch(() => {});
+  } catch (error) {
+    // Access logging must never affect the user flow.
+  }
+};
+
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -586,6 +605,7 @@ export default function Home() {
       sessionStorage.setItem(STORAGE_KEYS.userName, DEFAULT_USER_NAME);
       sessionStorage.setItem(STORAGE_KEYS.label, result.label || '');
       sessionStorage.removeItem(STORAGE_KEYS.role);
+      logVisitSafely(code, 'login_success');
 
       let draft = null;
       try {

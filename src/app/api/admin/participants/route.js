@@ -32,7 +32,7 @@ export async function GET(request) {
   }
 
   try {
-    const [authResult, submissionResult, draftResult] = await Promise.all([
+    const [authResult, submissionResult, draftResult, accessLogResult] = await Promise.all([
       supabaseAdmin
         .from('auth_codes')
         .select('code, label')
@@ -45,19 +45,47 @@ export async function GET(request) {
         .from('drafts')
         .select('auth_code, menu_data, change_log, intention, updated_at')
         .order('updated_at', { ascending: false }),
+      supabaseAdmin
+        .from('access_logs')
+        .select('auth_code, created_at')
+        .not('auth_code', 'is', null)
+        .order('created_at', { ascending: false }),
     ]);
 
     if (authResult.error) console.error('[admin] auth code query error:', authResult.error);
     if (submissionResult.error) throw submissionResult.error;
     if (draftResult.error) throw draftResult.error;
+    if (accessLogResult.error) console.error('[admin] access log query error:', accessLogResult.error);
 
     const submissionsByCode = getLatestByCode(submissionResult.data, 'code', 'submitted_at');
     const draftsByCode = getLatestByCode(draftResult.data, 'auth_code', 'updated_at');
+    const accessByCode = new Map();
+
+    if (!accessLogResult.error) {
+      (accessLogResult.data || []).forEach((row) => {
+        const code = row.auth_code;
+        if (!code) return;
+
+        const current = accessByCode.get(code) || {
+          lastAccessAt: null,
+          accessCount: 0,
+        };
+
+        current.accessCount += 1;
+        if (!current.lastAccessAt || new Date(row.created_at || 0) > new Date(current.lastAccessAt || 0)) {
+          current.lastAccessAt = row.created_at;
+        }
+
+        accessByCode.set(code, current);
+      });
+    }
+
     const codeSet = new Set([
       ...fallbackCodes,
       ...(authResult.data || []).map((item) => item.code),
       ...submissionsByCode.keys(),
       ...draftsByCode.keys(),
+      ...accessByCode.keys(),
     ]);
 
     const participants = [...codeSet]
@@ -66,6 +94,7 @@ export async function GET(request) {
       .map((code) => {
         const submission = submissionsByCode.get(code) || null;
         const draft = draftsByCode.get(code) || null;
+        const access = accessByCode.get(code) || null;
         const status = submission ? 'submitted' : draft ? 'draft' : 'not_started';
         const activeRecord = submission || draft;
         const changeLog = Array.isArray(activeRecord?.change_log) ? activeRecord.change_log : [];
@@ -77,7 +106,9 @@ export async function GET(request) {
           statusLabel: statusLabel[status],
           lastDraftAt: draft?.updated_at || null,
           submittedAt: submission?.submitted_at || null,
-          lastActivityAt: submission?.submitted_at || draft?.updated_at || null,
+          lastAccessAt: access?.lastAccessAt || null,
+          accessCount: access?.accessCount || 0,
+          lastActivityAt: submission?.submitted_at || draft?.updated_at || access?.lastAccessAt || null,
           changeLogCount: changeLog.length,
           hasIntention: intention.trim().length > 0,
         };

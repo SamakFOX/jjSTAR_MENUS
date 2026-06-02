@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Eye, LogOut, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Eye, LogOut, RefreshCw, X } from 'lucide-react';
 import PreviewModal from '@/components/PreviewModal';
 
 const ADMIN_CODE = 'JJ201562004';
@@ -16,6 +16,44 @@ const formatDateTime = (value) => {
     hour: '2-digit',
     minute: '2-digit',
   });
+};
+
+const formatTime = (value) => {
+  if (!value) return '';
+
+  return new Date(value).toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const summarizeUserAgent = (value) => {
+  const userAgent = String(value || '');
+  if (!userAgent) return '-';
+
+  const device = /iPhone|iPad|iPod/i.test(userAgent)
+    ? 'iPhone'
+    : /Android/i.test(userAgent)
+      ? 'Android'
+      : /Windows/i.test(userAgent)
+        ? 'Windows'
+        : /Mac OS X|Macintosh/i.test(userAgent)
+          ? 'Mac'
+          : /Linux/i.test(userAgent)
+            ? 'Linux'
+            : '기타';
+
+  const browser = /Edg\//i.test(userAgent)
+    ? 'Edge'
+    : /Chrome|CriOS/i.test(userAgent)
+      ? /Mobile|Android|iPhone/i.test(userAgent) ? 'Mobile Chrome' : 'Chrome'
+      : /Safari/i.test(userAgent)
+        ? 'Safari'
+        : /Firefox/i.test(userAgent)
+          ? 'Firefox'
+          : 'Browser';
+
+  return `${browser} / ${device}`;
 };
 
 const emptySummary = {
@@ -34,7 +72,15 @@ export default function AdminDashboard({ onLogout }) {
   const [previewItems, setPreviewItems] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
+  const [refreshError, setRefreshError] = useState('');
   const [error, setError] = useState('');
+  const [isAccessLogOpen, setIsAccessLogOpen] = useState(false);
+  const [accessLogs, setAccessLogs] = useState([]);
+  const [accessLogFilter, setAccessLogFilter] = useState('');
+  const [isAccessLogLoading, setIsAccessLogLoading] = useState(false);
+  const [accessLogError, setAccessLogError] = useState('');
 
   const selectedLog = useMemo(() => {
     const record = selectedDetail?.submission || selectedDetail?.draft;
@@ -58,38 +104,66 @@ export default function AdminDashboard({ onLogout }) {
     return result;
   }, []);
 
-  const loadParticipants = useCallback(async () => {
-    setIsLoading(true);
-    setError('');
+  const loadParticipants = useCallback(async ({ refresh = false } = {}) => {
+    if (refresh) {
+      setIsRefreshing(true);
+      setRefreshError('');
+    } else {
+      setIsLoading(true);
+      setError('');
+    }
 
     try {
       const result = await fetchJson('/api/admin/participants');
       setSummary(result.summary || emptySummary);
       setParticipants(result.participants || []);
       setRecentActivity(result.recentActivity || []);
+      setLastRefreshedAt(new Date());
     } catch (loadError) {
       console.error('[admin] participants load failed:', loadError);
-      setError('관리자 데이터를 불러오는 중 오류가 발생했습니다.');
+      if (refresh) {
+        setRefreshError('새로고침 실패');
+      } else {
+        setError('관리자 데이터를 불러오는 중 오류가 발생했습니다.');
+      }
     } finally {
-      setIsLoading(false);
+      if (refresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   }, [fetchJson]);
 
-  const loadDetail = async (authCode) => {
-    setIsLoading(true);
-    setError('');
+  const loadDetail = useCallback(async (authCode, { refresh = false } = {}) => {
+    if (refresh) {
+      setIsRefreshing(true);
+      setRefreshError('');
+    } else {
+      setIsLoading(true);
+      setError('');
+    }
     setSelectedCode(authCode);
 
     try {
       const result = await fetchJson(`/api/admin/participant?authCode=${encodeURIComponent(authCode)}`);
       setSelectedDetail(result);
+      setLastRefreshedAt(new Date());
     } catch (loadError) {
       console.error('[admin] participant load failed:', loadError);
-      setError('참여자 상세 데이터를 불러오는 중 오류가 발생했습니다.');
+      if (refresh) {
+        setRefreshError('새로고침 실패');
+      } else {
+        setError('참여자 상세 데이터를 불러오는 중 오류가 발생했습니다.');
+      }
     } finally {
-      setIsLoading(false);
+      if (refresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [fetchJson]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -98,6 +172,33 @@ export default function AdminDashboard({ onLogout }) {
 
     return () => clearTimeout(timeout);
   }, [loadParticipants]);
+
+  const handleRefresh = () => {
+    if (selectedCode) {
+      loadDetail(selectedCode, { refresh: true });
+    } else {
+      loadParticipants({ refresh: true });
+    }
+  };
+
+  const openAccessLogs = async (authCode = '') => {
+    setIsAccessLogOpen(true);
+    setAccessLogFilter(authCode);
+    setAccessLogs([]);
+    setAccessLogError('');
+    setIsAccessLogLoading(true);
+
+    try {
+      const suffix = authCode ? `?authCode=${encodeURIComponent(authCode)}` : '';
+      const result = await fetchJson(`/api/admin/access-logs${suffix}`);
+      setAccessLogs(result.logs || []);
+    } catch (loadError) {
+      console.error('[admin] access logs load failed:', loadError);
+      setAccessLogError('접속 로그를 불러오지 못했습니다.');
+    } finally {
+      setIsAccessLogLoading(false);
+    }
+  };
 
   const openPreview = () => {
     if (!selectedDetail?.viewMenuData) return;
@@ -112,6 +213,8 @@ export default function AdminDashboard({ onLogout }) {
     setIsPreviewOpen(false);
   };
 
+  const refreshLabel = isRefreshing ? '새로고침 중...' : '새로고침';
+
   return (
     <div className="min-h-screen bg-[#f5f6fb]">
       <header className="sticky top-0 z-40 bg-[#004f91] text-white shadow-lg">
@@ -120,14 +223,22 @@ export default function AdminDashboard({ onLogout }) {
             <h1 className="text-xl font-black">관리자 대시보드</h1>
             <p className="mt-1 text-xs text-blue-100">코드별 임시저장, 최종 제출, 변경 로그 조회</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <button
               type="button"
-              onClick={selectedCode ? () => loadDetail(selectedCode) : loadParticipants}
-              className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold transition hover:bg-white/20"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold transition hover:bg-white/20 disabled:opacity-60"
             >
-              <RefreshCw size={16} />
-              새로고침
+              <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+              {refreshLabel}
+            </button>
+            <button
+              type="button"
+              onClick={() => openAccessLogs()}
+              className="rounded-lg bg-white/10 px-3 py-2 text-sm font-bold transition hover:bg-white/20"
+            >
+              접속 로그
             </button>
             <button
               type="button"
@@ -142,6 +253,24 @@ export default function AdminDashboard({ onLogout }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
+        <div className="mb-5 flex min-h-6 flex-wrap items-center gap-3 text-xs font-bold">
+          {lastRefreshedAt && (
+            <span className="rounded-full bg-white px-3 py-1 text-slate-500 shadow-sm ring-1 ring-slate-200">
+              마지막 업데이트: {formatTime(lastRefreshedAt)}
+            </span>
+          )}
+          {refreshError && (
+            <span className="rounded-full bg-red-50 px-3 py-1 text-red-600 ring-1 ring-red-100">
+              {refreshError}
+            </span>
+          )}
+          {isLoading && (
+            <span className="rounded-full bg-white px-3 py-1 text-slate-400 shadow-sm ring-1 ring-slate-200">
+              데이터 불러오는 중...
+            </span>
+          )}
+        </div>
+
         {error && (
           <div className="mb-5 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
             {error}
@@ -171,10 +300,10 @@ export default function AdminDashboard({ onLogout }) {
                   <p className="py-4 text-sm text-slate-400">최근 활동이 없습니다.</p>
                 ) : (
                   recentActivity.map((item) => (
-                    <div key={`${item.authCode}-${item.lastActivityAt}`} className="flex items-center justify-between py-3 text-sm">
+                    <div key={`${item.authCode}-${item.lastActivityAt}`} className="grid gap-2 py-3 text-sm sm:grid-cols-3">
                       <div className="font-bold text-slate-800">{item.authCode}</div>
                       <div className="text-slate-500">{item.statusLabel}</div>
-                      <div className="text-slate-400">{formatDateTime(item.lastActivityAt)}</div>
+                      <div className="text-slate-400 sm:text-right">{formatDateTime(item.lastActivityAt)}</div>
                     </div>
                   ))
                 )}
@@ -186,11 +315,13 @@ export default function AdminDashboard({ onLogout }) {
                 <h2 className="text-base font-black text-slate-900">참여자 목록</h2>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[860px] text-left text-sm">
+                <table className="w-full min-w-[1080px] text-left text-sm">
                   <thead className="bg-slate-50 text-xs font-black text-slate-500">
                     <tr>
                       <th className="px-5 py-3">인증코드</th>
                       <th className="px-5 py-3">상태</th>
+                      <th className="px-5 py-3">마지막 접속</th>
+                      <th className="px-5 py-3">접속 횟수</th>
                       <th className="px-5 py-3">마지막 임시저장</th>
                       <th className="px-5 py-3">최종 제출</th>
                       <th className="px-5 py-3">의도</th>
@@ -203,18 +334,29 @@ export default function AdminDashboard({ onLogout }) {
                       <tr key={item.authCode} className="hover:bg-slate-50">
                         <td className="px-5 py-3 font-mono font-bold text-slate-900">{item.authCode}</td>
                         <td className="px-5 py-3 font-bold text-slate-700">{item.statusLabel}</td>
+                        <td className="px-5 py-3 text-slate-500">{formatDateTime(item.lastAccessAt)}</td>
+                        <td className="px-5 py-3 text-slate-500">{item.accessCount || 0}</td>
                         <td className="px-5 py-3 text-slate-500">{formatDateTime(item.lastDraftAt)}</td>
                         <td className="px-5 py-3 text-slate-500">{formatDateTime(item.submittedAt)}</td>
                         <td className="px-5 py-3 text-slate-500">{item.hasIntention ? '입력됨' : '-'}</td>
                         <td className="px-5 py-3 text-slate-500">{item.changeLogCount}</td>
                         <td className="px-5 py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => loadDetail(item.authCode)}
-                            className="rounded-md bg-[#004f91] px-3 py-1.5 text-xs font-black text-white transition hover:bg-[#003d70]"
-                          >
-                            보기
-                          </button>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openAccessLogs(item.authCode)}
+                              className="rounded-md bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-600 transition hover:bg-slate-200"
+                            >
+                              접속
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => loadDetail(item.authCode)}
+                              className="rounded-md bg-[#004f91] px-3 py-1.5 text-xs font-black text-white transition hover:bg-[#003d70]"
+                            >
+                              보기
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -234,15 +376,24 @@ export default function AdminDashboard({ onLogout }) {
                 <ArrowLeft size={16} />
                 목록으로 돌아가기
               </button>
-              <button
-                type="button"
-                onClick={openPreview}
-                disabled={!selectedDetail?.viewMenuData}
-                className="flex items-center gap-2 rounded-lg bg-[#004f91] px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#003d70] disabled:bg-slate-300"
-              >
-                <Eye size={16} />
-                미리보기 보기
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => openAccessLogs(selectedCode)}
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
+                >
+                  접속 로그
+                </button>
+                <button
+                  type="button"
+                  onClick={openPreview}
+                  disabled={!selectedDetail?.viewMenuData}
+                  className="flex items-center gap-2 rounded-lg bg-[#004f91] px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#003d70] disabled:bg-slate-300"
+                >
+                  <Eye size={16} />
+                  미리보기 보기
+                </button>
+              </div>
             </div>
 
             <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
@@ -297,6 +448,70 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
       </main>
+
+      {isAccessLogOpen && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/50 px-4 py-6">
+          <section className="flex max-h-[86vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <div>
+                <h2 className="text-lg font-black text-slate-900">접속 로그</h2>
+                <p className="mt-1 text-xs font-bold text-slate-400">
+                  {accessLogFilter ? `${accessLogFilter} 기준 최근 100건` : '전체 최근 100건'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAccessLogOpen(false)}
+                className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                aria-label="닫기"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="overflow-auto p-5">
+              {accessLogError && (
+                <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
+                  {accessLogError}
+                </div>
+              )}
+
+              {isAccessLogLoading ? (
+                <p className="py-10 text-center text-sm font-bold text-slate-400">접속 로그 불러오는 중...</p>
+              ) : accessLogs.length === 0 ? (
+                <p className="py-10 text-center text-sm font-bold text-slate-400">접속 로그가 없습니다.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[820px] text-left text-sm">
+                    <thead className="bg-slate-50 text-xs font-black text-slate-500">
+                      <tr>
+                        <th className="px-4 py-3">접속 시각</th>
+                        <th className="px-4 py-3">인증코드</th>
+                        <th className="px-4 py-3">이벤트</th>
+                        <th className="px-4 py-3">경로</th>
+                        <th className="px-4 py-3">브라우저</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {accessLogs.map((log) => (
+                        <tr key={log.id}>
+                          <td className="px-4 py-3 text-slate-500">{formatDateTime(log.created_at)}</td>
+                          <td className="px-4 py-3 font-mono font-bold text-slate-900">{log.auth_code || '-'}</td>
+                          <td className="px-4 py-3 text-slate-600">{log.event_type || '-'}</td>
+                          <td className="px-4 py-3 text-slate-500">{log.path || '-'}</td>
+                          <td className="px-4 py-3 text-slate-500" title={log.user_agent || ''}>
+                            {summarizeUserAgent(log.user_agent)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
 
       <PreviewModal
         isOpen={isPreviewOpen}
