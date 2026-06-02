@@ -33,7 +33,32 @@ export async function GET(request) {
       );
     }
 
-    return NextResponse.json({ ok: true, logs: data || [] });
+    const logs = data || [];
+    const codeSet = [...new Set(logs.map((item) => item.auth_code).filter(Boolean))];
+    let labelByCode = new Map();
+
+    if (codeSet.length > 0) {
+      const authResult = await supabaseAdmin
+        .from('auth_codes')
+        .select('code, label')
+        .in('code', codeSet);
+
+      if (authResult.error) {
+        console.error('[admin] access log labels query error:', authResult.error);
+      } else {
+        labelByCode = new Map(
+          (authResult.data || []).map((item) => [item.code, item.label || ''])
+        );
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      logs: logs.map((item) => ({
+        ...item,
+        label: labelByCode.get(item.auth_code) || '',
+      })),
+    });
   } catch (error) {
     console.error('[admin] access logs failed:', error);
     return NextResponse.json(

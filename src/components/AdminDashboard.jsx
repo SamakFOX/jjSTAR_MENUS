@@ -301,7 +301,12 @@ export default function AdminDashboard({ onLogout }) {
                 ) : (
                   recentActivity.map((item) => (
                     <div key={`${item.authCode}-${item.lastActivityAt}`} className="grid gap-2 py-3 text-sm sm:grid-cols-3">
-                      <div className="font-bold text-slate-800">{item.authCode}</div>
+                      <div className="flex flex-wrap items-center gap-2 font-bold text-slate-800">
+                        <span>{item.authCode}</span>
+                        {item.label && (
+                          <span className="text-xs font-bold text-slate-500">{item.label}</span>
+                        )}
+                      </div>
                       <div className="text-slate-500">{item.statusLabel}</div>
                       <div className="text-slate-400 sm:text-right">{formatDateTime(item.lastActivityAt)}</div>
                     </div>
@@ -332,7 +337,14 @@ export default function AdminDashboard({ onLogout }) {
                   <tbody className="divide-y divide-slate-100">
                     {participants.map((item) => (
                       <tr key={item.authCode} className="hover:bg-slate-50">
-                        <td className="px-5 py-3 font-mono font-bold text-slate-900">{item.authCode}</td>
+                        <td className="px-5 py-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono font-bold text-slate-900">{item.authCode}</span>
+                            {item.label && (
+                              <span className="text-xs font-bold text-slate-500">{item.label}</span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-5 py-3 font-bold text-slate-700">{item.statusLabel}</td>
                         <td className="px-5 py-3 text-slate-500">{formatDateTime(item.lastAccessAt)}</td>
                         <td className="px-5 py-3 text-slate-500">{item.accessCount || 0}</td>
@@ -399,7 +411,12 @@ export default function AdminDashboard({ onLogout }) {
             <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-900">{selectedCode} 상세</h2>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-2xl font-black text-slate-900">{selectedCode} 상세</h2>
+                    {selectedDetail?.label && (
+                      <span className="text-sm font-bold text-slate-500">{selectedDetail.label}</span>
+                    )}
+                  </div>
                   <p className="mt-1 text-sm font-bold text-[#004f91]">{selectedDetail?.statusLabel || '-'}</p>
                 </div>
                 {isLoading && <p className="text-sm font-bold text-slate-400">불러오는 중...</p>}
@@ -487,6 +504,7 @@ export default function AdminDashboard({ onLogout }) {
                       <tr>
                         <th className="px-4 py-3">접속 시각</th>
                         <th className="px-4 py-3">인증코드</th>
+                        <th className="px-4 py-3">이름</th>
                         <th className="px-4 py-3">이벤트</th>
                         <th className="px-4 py-3">경로</th>
                         <th className="px-4 py-3">브라우저</th>
@@ -497,6 +515,7 @@ export default function AdminDashboard({ onLogout }) {
                         <tr key={log.id}>
                           <td className="px-4 py-3 text-slate-500">{formatDateTime(log.created_at)}</td>
                           <td className="px-4 py-3 font-mono font-bold text-slate-900">{log.auth_code || '-'}</td>
+                          <td className="px-4 py-3 text-slate-500">{log.label || '-'}</td>
                           <td className="px-4 py-3 text-slate-600">{log.event_type || '-'}</td>
                           <td className="px-4 py-3 text-slate-500">{log.path || '-'}</td>
                           <td className="px-4 py-3 text-slate-500" title={log.user_agent || ''}>

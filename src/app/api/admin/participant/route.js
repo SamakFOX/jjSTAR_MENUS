@@ -28,7 +28,12 @@ export async function GET(request) {
       );
     }
 
-    const [submissionResult, draftResult] = await Promise.all([
+    const [authResult, submissionResult, draftResult] = await Promise.all([
+      supabaseAdmin
+        .from('auth_codes')
+        .select('code, label')
+        .eq('code', authCode)
+        .maybeSingle(),
       supabaseAdmin
         .from('submissions')
         .select('code, menu_data, change_log, intention, submitted_at')
@@ -43,9 +48,11 @@ export async function GET(request) {
         .maybeSingle(),
     ]);
 
+    if (authResult.error) console.error('[admin] participant auth code query error:', authResult.error);
     if (submissionResult.error) throw submissionResult.error;
     if (draftResult.error) throw draftResult.error;
 
+    const authCodeRecord = authResult.data || null;
     const submission = submissionResult.data || null;
     const draft = draftResult.data || null;
     const status = submission ? 'submitted' : draft ? 'draft' : 'not_started';
@@ -55,6 +62,7 @@ export async function GET(request) {
     return NextResponse.json({
       ok: true,
       authCode,
+      label: authCodeRecord?.label || '',
       status,
       statusLabel: statusLabel[status],
       submission,

@@ -57,6 +57,9 @@ export async function GET(request) {
     if (draftResult.error) throw draftResult.error;
     if (accessLogResult.error) console.error('[admin] access log query error:', accessLogResult.error);
 
+    const labelByCode = new Map(
+      (authResult.data || []).map((item) => [item.code, item.label || ''])
+    );
     const submissionsByCode = getLatestByCode(submissionResult.data, 'code', 'submitted_at');
     const draftsByCode = getLatestByCode(draftResult.data, 'auth_code', 'updated_at');
     const accessByCode = new Map();
@@ -102,6 +105,7 @@ export async function GET(request) {
 
         return {
           authCode: code,
+          label: labelByCode.get(code) || '',
           status,
           statusLabel: statusLabel[status],
           lastDraftAt: draft?.updated_at || null,
