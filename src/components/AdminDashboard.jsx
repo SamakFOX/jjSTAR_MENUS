@@ -63,6 +63,259 @@ const emptySummary = {
   notStarted: 0,
 };
 
+const emptyTrends = {
+  summary: {
+    analyzedUserCount: 0,
+    submittedCount: 0,
+    draftCount: 0,
+  },
+  topMovedMenus: [],
+  topCategoryMoves: [],
+  addedMenus: [],
+  deletedMenus: [],
+};
+
+const emptyFinalOverview = {
+  summary: {
+    analyzedUserCount: 0,
+    submittedCount: 0,
+    draftCount: 0,
+    movedMenuCount: 0,
+    deletedMenuCount: 0,
+    addedMenuCount: 0,
+  },
+  baseMenuTree: [],
+  movedMenusByKey: {},
+  deletedMenusByKey: {},
+  addedMenusByPath: {},
+};
+
+const adminTabs = [
+  { id: 'participants', label: '참여자 목록' },
+  { id: 'trends', label: '경향 분석' },
+  { id: 'finalMenus', label: '전체 최종 메뉴' },
+];
+
+const getMaxCount = (items, key) => Math.max(1, ...items.map((item) => Number(item[key]) || 0));
+
+function TrendBarList({ items, valueKey, labelKey, emptyText }) {
+  if (!items.length) {
+    return <p className="rounded-lg bg-slate-50 p-4 text-sm font-bold text-slate-400">{emptyText}</p>;
+  }
+
+  const maxValue = getMaxCount(items, valueKey);
+
+  return (
+    <div className="space-y-3 rounded-lg bg-slate-50 p-4">
+      {items.map((item) => {
+        const value = Number(item[valueKey]) || 0;
+        const width = `${Math.max(8, Math.round((value / maxValue) * 100))}%`;
+
+        return (
+          <div key={`${item[labelKey]}-${value}`} className="grid gap-2 sm:grid-cols-[180px_1fr_48px] sm:items-center">
+            <p className="truncate text-sm font-bold text-slate-700" title={item[labelKey]}>{item[labelKey]}</p>
+            <div className="h-3 overflow-hidden rounded-full bg-white ring-1 ring-slate-200">
+              <div className="h-full rounded-full bg-[#004f91]" style={{ width }} />
+            </div>
+            <p className="text-right text-sm font-black text-slate-800">{value}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const getMenuKey = (node, pathTitles) => {
+  if (node?.code) return `code:${node.code}`;
+  if (node?.id) return `id:${node.id}`;
+  return `path:${String(node?.title || '').trim()}::${pathTitles.join(' > ')}`;
+};
+
+function UserChips({ users = [] }) {
+  const visibleUsers = users.slice(0, 10);
+  const hiddenCount = Math.max(0, users.length - visibleUsers.length);
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {visibleUsers.map((user) => (
+        <span key={user.authCode} className="rounded-full bg-white px-2 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-slate-200">
+          {user.authCode}{user.label ? ` ${user.label}` : ''}
+        </span>
+      ))}
+      {hiddenCount > 0 && (
+        <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-black text-slate-500">
+          외 {hiddenCount}명
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ChangePopover({ type, data }) {
+  if (!data) return null;
+
+  const titleMap = {
+    moved: '이동된 메뉴입니다.',
+    deleted: '삭제된 메뉴입니다.',
+    added: '사용자가 새로 추가한 메뉴입니다.',
+  };
+
+  return (
+    <div className="pointer-events-none absolute left-0 top-full z-30 mt-2 hidden w-[min(420px,calc(100vw-4rem))] rounded-lg border border-slate-200 bg-white p-4 text-left shadow-2xl group-hover:block">
+      <p className="text-sm font-black text-slate-900">{titleMap[type]}</p>
+      {data.originalPath && (
+        <div className="mt-3">
+          <p className="text-[11px] font-black uppercase text-slate-400">원래 위치</p>
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-600">{data.originalPath}</p>
+        </div>
+      )}
+      {type === 'moved' && (
+        <div className="mt-3">
+          <p className="text-[11px] font-black uppercase text-slate-400">이동된 위치 TOP</p>
+          <div className="mt-1 space-y-1">
+            {(data.finalPaths || []).slice(0, 5).map((item, index) => (
+              <p key={item.path} className="text-xs font-semibold leading-relaxed text-slate-600">
+                {index + 1}. {item.path} · {item.count}명
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+      {type === 'added' && (
+        <>
+          <div className="mt-3">
+            <p className="text-[11px] font-black uppercase text-slate-400">추가 위치</p>
+            {(data.addedPaths || []).map((item) => (
+              <p key={item.path} className="mt-1 text-xs font-semibold leading-relaxed text-slate-600">
+                {item.path} · {item.count}명
+              </p>
+            ))}
+          </div>
+          {(data.childrenTitles || []).length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] font-black uppercase text-slate-400">하위 메뉴</p>
+              <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-600">{data.childrenTitles.join(', ')}</p>
+            </div>
+          )}
+        </>
+      )}
+      <div className="mt-3">
+        <p className="text-[11px] font-black uppercase text-slate-400">
+          {type === 'moved' ? '이동한 사용자' : type === 'deleted' ? '삭제한 사용자' : '추가한 사용자'}
+        </p>
+        <UserChips users={data.users || []} />
+      </div>
+      {type === 'deleted' && (
+        <p className="mt-3 text-xs font-black text-red-600">삭제 건수: {data.deletedCount}명</p>
+      )}
+    </div>
+  );
+}
+
+function ChangeBadge({ type, count }) {
+  const classes = {
+    moved: 'bg-orange-400 text-white',
+    deleted: 'bg-red-500 text-white',
+    added: 'bg-lime-500 text-white',
+  };
+  const labels = {
+    moved: '이동',
+    deleted: '삭제',
+    added: '추가',
+  };
+
+  return (
+    <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-black ${classes[type]}`}>
+      {labels[type]}{count ? ` ${count}` : ''}
+    </span>
+  );
+}
+
+function AddedChildrenTree({ nodes = [], depth = 0 }) {
+  if (!nodes.length) return null;
+
+  return (
+    <ul className="mt-2 space-y-1">
+      {nodes.map((child, index) => (
+        <li key={`${child.title}-${index}`} className="text-xs font-semibold text-lime-800" style={{ paddingLeft: `${depth * 12}px` }}>
+          <span className="mr-1 text-lime-500">-</span>
+          {child.title}
+          <AddedChildrenTree nodes={child.children || []} depth={depth + 1} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function AddedMenuBox({ title, items }) {
+  if (!items?.length) return null;
+
+  return (
+    <div className="mt-3 rounded-lg border border-lime-200 bg-lime-50 p-3">
+      <p className="text-xs font-black text-lime-700">사용자 추가 메뉴 · {title}</p>
+      <div className="mt-2 space-y-2">
+        {items.map((item) => (
+          <div key={item.addedKey} className="group relative rounded-md border border-lime-200 bg-white px-3 py-2">
+            <ChangePopover type="added" data={item} />
+            <div className="flex flex-wrap items-center gap-2">
+              <ChangeBadge type="added" count={item.addedCount} />
+              <span className="text-sm font-black text-slate-900">{item.title}</span>
+            </div>
+            <AddedChildrenTree nodes={item.children || []} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FinalMenuNode({ node, pathTitles = [], overview, filter }) {
+  const nextPathTitles = [...pathTitles, String(node?.title || '').trim()];
+  const key = getMenuKey(node, nextPathTitles);
+  const pathText = nextPathTitles.join(' > ');
+  const moved = overview.movedMenusByKey[key];
+  const deleted = overview.deletedMenusByKey[key];
+  const addedItems = overview.addedMenusByPath[pathText] || [];
+  const hasOwnChange = Boolean(moved || deleted);
+  const hasAdded = addedItems.length > 0;
+  const children = Array.isArray(node.children) ? node.children : [];
+  const shouldDim = filter !== 'all'
+    && !((filter === 'moved' && moved) || (filter === 'deleted' && deleted) || (filter === 'added' && hasAdded));
+  const itemClass = deleted
+    ? 'border-red-300 bg-red-50 text-red-700 opacity-80'
+    : moved
+      ? 'border-orange-300 bg-orange-50 text-orange-700'
+      : 'border-slate-200 bg-white text-slate-800';
+
+  return (
+    <li className={shouldDim ? 'opacity-35' : ''}>
+      <div className={`group relative flex min-h-9 items-center gap-2 rounded-lg border px-3 py-2 ${itemClass}`}>
+        {moved && <ChangePopover type="moved" data={moved} />}
+        {deleted && <ChangePopover type="deleted" data={deleted} />}
+        {moved && <ChangeBadge type="moved" count={moved.movedCount} />}
+        {deleted && <ChangeBadge type="deleted" count={deleted.deletedCount} />}
+        <span className={`text-sm ${hasOwnChange ? 'font-black' : 'font-bold'}`}>{node.title}</span>
+      </div>
+      {hasAdded && (filter === 'all' || filter === 'added') && (
+        <AddedMenuBox title={pathText} items={addedItems} />
+      )}
+      {children.length > 0 && (
+        <ul className="mt-2 space-y-2 border-l border-slate-200 pl-4">
+          {children.map((child) => (
+            <FinalMenuNode
+              key={getMenuKey(child, nextPathTitles.concat(String(child?.title || '').trim()))}
+              node={child}
+              pathTitles={nextPathTitles}
+              overview={overview}
+              filter={filter}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
 export default function AdminDashboard({ onLogout }) {
   const [summary, setSummary] = useState(emptySummary);
   const [participants, setParticipants] = useState([]);
@@ -81,6 +334,16 @@ export default function AdminDashboard({ onLogout }) {
   const [accessLogFilter, setAccessLogFilter] = useState('');
   const [isAccessLogLoading, setIsAccessLogLoading] = useState(false);
   const [accessLogError, setAccessLogError] = useState('');
+  const [activeTab, setActiveTab] = useState('participants');
+  const [trends, setTrends] = useState(emptyTrends);
+  const [isTrendsLoading, setIsTrendsLoading] = useState(false);
+  const [trendsError, setTrendsError] = useState('');
+  const [hasLoadedTrends, setHasLoadedTrends] = useState(false);
+  const [finalOverview, setFinalOverview] = useState(emptyFinalOverview);
+  const [isFinalOverviewLoading, setIsFinalOverviewLoading] = useState(false);
+  const [finalOverviewError, setFinalOverviewError] = useState('');
+  const [hasLoadedFinalOverview, setHasLoadedFinalOverview] = useState(false);
+  const [finalOverviewFilter, setFinalOverviewFilter] = useState('all');
 
   const selectedLog = useMemo(() => {
     const record = selectedDetail?.submission || selectedDetail?.draft;
@@ -165,6 +428,78 @@ export default function AdminDashboard({ onLogout }) {
     }
   }, [fetchJson]);
 
+  const loadTrends = useCallback(async ({ refresh = false } = {}) => {
+    if (refresh) {
+      setIsRefreshing(true);
+      setRefreshError('');
+    } else {
+      setIsTrendsLoading(true);
+      setTrendsError('');
+    }
+
+    try {
+      const result = await fetchJson('/api/admin/trends');
+      setTrends({
+        summary: result.summary || emptyTrends.summary,
+        topMovedMenus: result.topMovedMenus || [],
+        topCategoryMoves: result.topCategoryMoves || [],
+        addedMenus: result.addedMenus || [],
+        deletedMenus: result.deletedMenus || [],
+      });
+      setHasLoadedTrends(true);
+      setLastRefreshedAt(new Date());
+    } catch (loadError) {
+      console.error('[admin] trends load failed:', loadError);
+      if (refresh) {
+        setRefreshError('새로고침 실패');
+      } else {
+        setTrendsError('경향 분석 데이터를 불러오는 중 오류가 발생했습니다.');
+      }
+    } finally {
+      if (refresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsTrendsLoading(false);
+      }
+    }
+  }, [fetchJson]);
+
+  const loadFinalOverview = useCallback(async ({ refresh = false } = {}) => {
+    if (refresh) {
+      setIsRefreshing(true);
+      setRefreshError('');
+    } else {
+      setIsFinalOverviewLoading(true);
+      setFinalOverviewError('');
+    }
+
+    try {
+      const result = await fetchJson('/api/admin/final-menu-overview');
+      setFinalOverview({
+        summary: result.summary || emptyFinalOverview.summary,
+        baseMenuTree: result.baseMenuTree || [],
+        movedMenusByKey: result.movedMenusByKey || {},
+        deletedMenusByKey: result.deletedMenusByKey || {},
+        addedMenusByPath: result.addedMenusByPath || {},
+      });
+      setHasLoadedFinalOverview(true);
+      setLastRefreshedAt(new Date());
+    } catch (loadError) {
+      console.error('[admin] final menu overview load failed:', loadError);
+      if (refresh) {
+        setRefreshError('새로고침 실패');
+      } else {
+        setFinalOverviewError('전체 최종 메뉴 데이터를 불러오는 중 오류가 발생했습니다.');
+      }
+    } finally {
+      if (refresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsFinalOverviewLoading(false);
+      }
+    }
+  }, [fetchJson]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       loadParticipants();
@@ -176,8 +511,22 @@ export default function AdminDashboard({ onLogout }) {
   const handleRefresh = () => {
     if (selectedCode) {
       loadDetail(selectedCode, { refresh: true });
+    } else if (activeTab === 'trends') {
+      loadTrends({ refresh: true });
+    } else if (activeTab === 'finalMenus') {
+      loadFinalOverview({ refresh: true });
     } else {
       loadParticipants({ refresh: true });
+    }
+  };
+
+  const selectTab = (tabId) => {
+    setActiveTab(tabId);
+    if (tabId === 'trends' && !hasLoadedTrends) {
+      loadTrends();
+    }
+    if (tabId === 'finalMenus' && !hasLoadedFinalOverview) {
+      loadFinalOverview();
     }
   };
 
@@ -214,6 +563,25 @@ export default function AdminDashboard({ onLogout }) {
   };
 
   const refreshLabel = isRefreshing ? '새로고침 중...' : '새로고침';
+  const hasAnyTrendData = trends.summary.analyzedUserCount > 0;
+  const hasAnyFinalOverviewData = finalOverview.summary.analyzedUserCount > 0;
+  const trendSummaryItems = [
+    ['분석 사용자 수', trends.summary.analyzedUserCount],
+    ['최종 제출 기준', trends.summary.submittedCount],
+    ['임시저장 기준', trends.summary.draftCount],
+  ];
+  const finalOverviewSummaryItems = [
+    ['분석 사용자 수', finalOverview.summary.analyzedUserCount],
+    ['이동된 메뉴', finalOverview.summary.movedMenuCount],
+    ['삭제된 메뉴', finalOverview.summary.deletedMenuCount],
+    ['추가된 메뉴', finalOverview.summary.addedMenuCount],
+  ];
+  const finalOverviewFilters = [
+    { id: 'all', label: '전체' },
+    { id: 'moved', label: '이동만' },
+    { id: 'deleted', label: '삭제만' },
+    { id: 'added', label: '추가만' },
+  ];
 
   return (
     <div className="min-h-screen bg-[#f5f6fb]">
@@ -277,8 +645,28 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
+        {!selectedCode && (
+          <nav className="mb-6 flex flex-wrap gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
+            {adminTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => selectTab(tab.id)}
+                className={`rounded-md px-4 py-2 text-sm font-black transition ${
+                  activeTab === tab.id
+                    ? 'bg-[#004f91] text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        )}
+
         {!selectedCode ? (
-          <div className="space-y-6">
+          activeTab === 'participants' ? (
+            <div className="space-y-6">
             <section className="grid gap-3 md:grid-cols-4">
               {[
                 ['전체 코드', summary.total],
@@ -377,6 +765,257 @@ export default function AdminDashboard({ onLogout }) {
               </div>
             </section>
           </div>
+          ) : activeTab === 'trends' ? (
+            <div className="space-y-6">
+              {trendsError && (
+                <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
+                  {trendsError}
+                </div>
+              )}
+
+              <section className="grid gap-3 md:grid-cols-3">
+                {trendSummaryItems.map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-xs font-bold text-slate-400">{label}</p>
+                    <p className="mt-2 text-3xl font-black text-slate-900">{value}</p>
+                  </div>
+                ))}
+              </section>
+
+              {isTrendsLoading ? (
+                <section className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm font-bold text-slate-400 shadow-sm">
+                  경향 분석 데이터를 불러오는 중...
+                </section>
+              ) : !hasAnyTrendData ? (
+                <section className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm font-bold text-slate-400 shadow-sm">
+                  아직 분석할 저장 데이터가 없습니다.
+                </section>
+              ) : (
+                <>
+                  <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                    <h2 className="text-base font-black text-slate-900">많이 이동된 메뉴 TOP 10</h2>
+                    <div className="mt-4">
+                      <TrendBarList
+                        items={trends.topMovedMenus}
+                        valueKey="moveCount"
+                        labelKey="menuTitle"
+                        emptyText="많이 이동된 메뉴가 없습니다."
+                      />
+                    </div>
+                    {trends.topMovedMenus.length > 0 && (
+                      <div className="mt-5 overflow-x-auto">
+                        <table className="w-full min-w-[900px] text-left text-sm">
+                          <thead className="bg-slate-50 text-xs font-black text-slate-500">
+                            <tr>
+                              <th className="px-4 py-3">순위</th>
+                              <th className="px-4 py-3">메뉴명</th>
+                              <th className="px-4 py-3 text-right">이동 횟수</th>
+                              <th className="px-4 py-3">원래 위치</th>
+                              <th className="px-4 py-3">가장 많이 이동된 위치</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {trends.topMovedMenus.map((item, index) => (
+                              <tr key={item.menuCode || item.menuTitle}>
+                                <td className="px-4 py-3 font-black text-slate-500">{index + 1}</td>
+                                <td className="px-4 py-3 font-bold text-slate-900">{item.menuTitle}</td>
+                                <td className="px-4 py-3 text-right font-black text-slate-800">{item.moveCount}</td>
+                                <td className="px-4 py-3 text-slate-500">{item.originalPath}</td>
+                                <td className="px-4 py-3 text-slate-500">{item.mostCommonFinalPath}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                    <h2 className="text-base font-black text-slate-900">대분류 이동 경향</h2>
+                    <div className="mt-4">
+                      <TrendBarList
+                        items={trends.topCategoryMoves}
+                        valueKey="moveCount"
+                        labelKey="targetTopCategoryTitle"
+                        emptyText="대분류를 이동한 메뉴가 없습니다."
+                      />
+                    </div>
+                    {trends.topCategoryMoves.length > 0 && (
+                      <div className="mt-5 overflow-x-auto">
+                        <table className="w-full min-w-[520px] text-left text-sm">
+                          <thead className="bg-slate-50 text-xs font-black text-slate-500">
+                            <tr>
+                              <th className="px-4 py-3">이동 대상 대분류</th>
+                              <th className="px-4 py-3 text-right">이동된 메뉴 수</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {trends.topCategoryMoves.map((item) => (
+                              <tr key={item.targetTopCategoryTitle}>
+                                <td className="px-4 py-3 font-bold text-slate-900">{item.targetTopCategoryTitle}</td>
+                                <td className="px-4 py-3 text-right font-black text-slate-800">{item.moveCount}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-100 px-5 py-4">
+                      <h2 className="text-base font-black text-slate-900">사용자 추가 메뉴</h2>
+                    </div>
+                    {trends.addedMenus.length === 0 ? (
+                      <p className="p-5 text-sm font-bold text-slate-400">사용자 추가 메뉴가 없습니다.</p>
+                    ) : (
+                      <div className="divide-y divide-slate-100">
+                        {trends.addedMenus.map((item) => (
+                          <details key={`${item.menuTitle}-${item.menuId}`} className="group">
+                            <summary className="grid cursor-pointer gap-3 px-5 py-4 text-sm hover:bg-slate-50 sm:grid-cols-[1.2fr_120px_1.6fr_1.5fr]">
+                              <span className="font-bold text-slate-900">{item.menuTitle}</span>
+                              <span className="font-black text-slate-800 sm:text-right">{item.addedCount}명</span>
+                              <span className="text-slate-500">{item.addedPaths?.join(', ') || '-'}</span>
+                              <span className="text-slate-500">{item.childrenTitles?.join(', ') || '-'}</span>
+                            </summary>
+                            <div className="bg-slate-50 px-5 py-4">
+                              <p className="text-xs font-black text-slate-400">추가 사용자</p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {(item.addedBy || []).map((user) => (
+                                  <span key={`${item.menuTitle}-${user.authCode}`} className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+                                    {user.authCode}{user.label ? ` ${user.label}` : ''}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </details>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-100 px-5 py-4">
+                      <h2 className="text-base font-black text-slate-900">삭제된 메뉴</h2>
+                    </div>
+                    {trends.deletedMenus.length === 0 ? (
+                      <p className="p-5 text-sm font-bold text-slate-400">삭제된 메뉴가 없습니다.</p>
+                    ) : (
+                      <div className="divide-y divide-slate-100">
+                        {trends.deletedMenus.map((item, index) => (
+                          <details key={item.menuCode || `${item.menuTitle}-${index}`} className="group">
+                            <summary className="grid cursor-pointer gap-3 px-5 py-4 text-sm hover:bg-slate-50 sm:grid-cols-[60px_1fr_120px_2fr]">
+                              <span className="font-black text-slate-400">{index + 1}</span>
+                              <span className="font-bold text-slate-900">{item.menuTitle}</span>
+                              <span className="font-black text-slate-800 sm:text-right">{item.deleteCount}회</span>
+                              <span className="text-slate-500">{item.originalPath}</span>
+                            </summary>
+                            <div className="bg-slate-50 px-5 py-4">
+                              <p className="text-xs font-black text-slate-400">삭제 사용자</p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {(item.deletedBy || []).map((user) => (
+                                  <span key={`${item.menuCode}-${user.authCode}`} className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+                                    {user.authCode}{user.label ? ` ${user.label}` : ''}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </details>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {finalOverviewError && (
+                <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
+                  {finalOverviewError}
+                </div>
+              )}
+
+              <section className="grid gap-3 md:grid-cols-4">
+                {finalOverviewSummaryItems.map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-xs font-bold text-slate-400">{label}</p>
+                    <p className="mt-2 text-3xl font-black text-slate-900">{value}</p>
+                  </div>
+                ))}
+              </section>
+
+              <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-base font-black text-slate-900">전체 최종 메뉴</h2>
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs font-black">
+                      <span className="rounded-full bg-orange-50 px-3 py-1 text-orange-700 ring-1 ring-orange-200">주황: 이동된 메뉴</span>
+                      <span className="rounded-full bg-red-50 px-3 py-1 text-red-700 ring-1 ring-red-200">빨강: 삭제된 메뉴</span>
+                      <span className="rounded-full bg-lime-50 px-3 py-1 text-lime-700 ring-1 ring-lime-200">초록: 사용자 추가 메뉴</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 rounded-lg bg-slate-100 p-1">
+                    {finalOverviewFilters.map((filter) => (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        onClick={() => setFinalOverviewFilter(filter.id)}
+                        className={`rounded-md px-3 py-1.5 text-xs font-black transition ${
+                          finalOverviewFilter === filter.id
+                            ? 'bg-white text-[#004f91] shadow-sm'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {isFinalOverviewLoading ? (
+                <section className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm font-bold text-slate-400 shadow-sm">
+                  전체 최종 메뉴 데이터를 불러오는 중...
+                </section>
+              ) : !hasAnyFinalOverviewData ? (
+                <section className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm font-bold text-slate-400 shadow-sm">
+                  아직 비교할 최종 메뉴 데이터가 없습니다.
+                </section>
+              ) : (
+                <div className="space-y-4">
+                  {(finalOverview.baseMenuTree || []).map((topNode) => (
+                    <section key={getMenuKey(topNode, [String(topNode?.title || '').trim()])} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                      <h3 className="text-lg font-black text-slate-900">{topNode.title}</h3>
+                      <ul className="mt-4 space-y-2">
+                        {(topNode.children || []).map((child) => (
+                          <FinalMenuNode
+                            key={getMenuKey(child, [String(topNode?.title || '').trim(), String(child?.title || '').trim()])}
+                            node={child}
+                            pathTitles={[String(topNode?.title || '').trim()]}
+                            overview={finalOverview}
+                            filter={finalOverviewFilter}
+                          />
+                        ))}
+                      </ul>
+                      {(finalOverview.addedMenusByPath?.[String(topNode?.title || '').trim()] || []).length > 0 && (
+                        <AddedMenuBox
+                          title={String(topNode?.title || '').trim()}
+                          items={finalOverview.addedMenusByPath[String(topNode?.title || '').trim()]}
+                        />
+                      )}
+                    </section>
+                  ))}
+                  {(finalOverview.addedMenusByPath?.['대분류 추가'] || []).length > 0 && (
+                    <section className="rounded-lg border border-lime-200 bg-white p-5 shadow-sm">
+                      <h3 className="text-lg font-black text-slate-900">대분류 추가</h3>
+                      <AddedMenuBox title="대분류 추가" items={finalOverview.addedMenusByPath['대분류 추가']} />
+                    </section>
+                  )}
+                </div>
+              )}
+            </div>
+          )
         ) : (
           <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
