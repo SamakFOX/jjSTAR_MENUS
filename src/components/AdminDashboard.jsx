@@ -1,7 +1,26 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Eye, LogOut, RefreshCw, X } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ArrowLeft,
+  Bell,
+  BookOpen,
+  Calendar,
+  ChevronRight,
+  Eye,
+  GraduationCap,
+  Grid,
+  HelpCircle,
+  List,
+  LogOut,
+  Monitor,
+  RefreshCw,
+  Search,
+  Settings,
+  User,
+  Users,
+  X,
+} from 'lucide-react';
 import PreviewModal from '@/components/PreviewModal';
 
 const ADMIN_CODE = 'JJ201562004';
@@ -151,29 +170,69 @@ function UserChips({ users = [] }) {
   );
 }
 
-function ChangePopover({ type, data }) {
+function ChangePopover({ type, data, align = 'auto' }) {
+  const [autoAlign, setAutoAlign] = useState('center');
+  const popoverRef = useRef(null);
+
+  useEffect(() => {
+    if (align !== 'auto' || typeof window === 'undefined') return undefined;
+
+    const parent = popoverRef.current?.parentElement;
+    if (!parent) return undefined;
+
+    const updateAlign = () => {
+      const rect = parent.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+
+      if (centerX < window.innerWidth * 0.4) setAutoAlign('left');
+      else if (centerX > window.innerWidth * 0.6) setAutoAlign('right');
+      else setAutoAlign('center');
+    };
+
+    parent.addEventListener('mouseenter', updateAlign);
+    parent.addEventListener('focusin', updateAlign);
+
+    return () => {
+      parent.removeEventListener('mouseenter', updateAlign);
+      parent.removeEventListener('focusin', updateAlign);
+    };
+  }, [align]);
+
   if (!data) return null;
 
   const titleMap = {
     moved: '이동된 메뉴입니다.',
     deleted: '삭제된 메뉴입니다.',
     added: '사용자가 새로 추가한 메뉴입니다.',
+    movedDeleted: '삭제 또는 이동된 메뉴입니다.',
   };
-
+  const movedData = type === 'movedDeleted' ? data.moved : data;
+  const deletedData = type === 'movedDeleted' ? data.deleted : data;
+  const users = type === 'movedDeleted'
+    ? [...(movedData?.users || []), ...(deletedData?.users || [])].filter((user, index, list) => (
+      list.findIndex((item) => item.authCode === user.authCode) === index
+    ))
+    : data.users || [];
+  const resolvedAlign = align === 'auto' ? autoAlign : align;
+  const alignClass = resolvedAlign === 'right'
+    ? 'right-0'
+    : resolvedAlign === 'center'
+      ? 'left-1/2 -translate-x-1/2'
+      : 'left-0';
   return (
-    <div className="pointer-events-none absolute left-0 top-full z-30 mt-2 hidden w-[min(420px,calc(100vw-4rem))] rounded-lg border border-slate-200 bg-white p-4 text-left shadow-2xl group-hover:block">
+    <div ref={popoverRef} className={`pointer-events-none absolute ${alignClass} top-full z-[500] mt-2 hidden w-[min(420px,calc(100vw-4rem))] rounded-lg border border-slate-200 bg-white p-4 text-left shadow-2xl group-hover:block`}>
       <p className="text-sm font-black text-slate-900">{titleMap[type]}</p>
-      {data.originalPath && (
+      {(movedData?.originalPath || deletedData?.originalPath) && (
         <div className="mt-3">
           <p className="text-[11px] font-black uppercase text-slate-400">원래 위치</p>
-          <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-600">{data.originalPath}</p>
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-600">{movedData?.originalPath || deletedData?.originalPath}</p>
         </div>
       )}
-      {type === 'moved' && (
+      {(type === 'moved' || type === 'movedDeleted') && movedData && (
         <div className="mt-3">
           <p className="text-[11px] font-black uppercase text-slate-400">이동된 위치 TOP</p>
           <div className="mt-1 space-y-1">
-            {(data.finalPaths || []).slice(0, 5).map((item, index) => (
+            {(movedData.finalPaths || []).slice(0, 5).map((item, index) => (
               <p key={item.path} className="text-xs font-semibold leading-relaxed text-slate-600">
                 {index + 1}. {item.path} · {item.count}명
               </p>
@@ -201,12 +260,12 @@ function ChangePopover({ type, data }) {
       )}
       <div className="mt-3">
         <p className="text-[11px] font-black uppercase text-slate-400">
-          {type === 'moved' ? '이동한 사용자' : type === 'deleted' ? '삭제한 사용자' : '추가한 사용자'}
+          {type === 'movedDeleted' ? '삭제 또는 이동한 사용자' : type === 'moved' ? '이동한 사용자' : type === 'deleted' ? '삭제한 사용자' : '추가한 사용자'}
         </p>
-        <UserChips users={data.users || []} />
+        <UserChips users={users} />
       </div>
-      {type === 'deleted' && (
-        <p className="mt-3 text-xs font-black text-red-600">삭제 건수: {data.deletedCount}명</p>
+      {(type === 'deleted' || type === 'movedDeleted') && deletedData && (
+        <p className="mt-3 text-xs font-black text-red-600">삭제 건수: {deletedData.deletedCount}명</p>
       )}
     </div>
   );
@@ -255,7 +314,7 @@ function AddedMenuBox({ title, items }) {
       <p className="text-xs font-black text-lime-700">사용자 추가 메뉴 · {title}</p>
       <div className="mt-2 space-y-2">
         {items.map((item) => (
-          <div key={item.addedKey} className="group relative rounded-md border border-lime-200 bg-white px-3 py-2">
+          <div key={item.addedKey} className="group relative rounded-md border border-lime-200 bg-white px-3 py-2 hover:z-[120]">
             <ChangePopover type="added" data={item} />
             <div className="flex flex-wrap items-center gap-2">
               <ChangeBadge type="added" count={item.addedCount} />
@@ -265,6 +324,325 @@ function AddedMenuBox({ title, items }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function PreviewChangeMenuItem({ node, pathTitles = [], overview, filter }) {
+  const nextPathTitles = [...pathTitles, String(node?.title || '').trim()];
+  const key = getMenuKey(node, nextPathTitles);
+  const moved = overview.movedMenusByKey[key];
+  const deleted = overview.deletedMenusByKey[key];
+  const hasOwnChange = Boolean(moved || deleted);
+  const shouldDim = filter !== 'all'
+    && !((filter === 'moved' && moved) || (filter === 'deleted' && deleted));
+  const itemClass = deleted
+    ? 'border-red-300 bg-red-50 text-red-700'
+    : moved
+      ? 'border-orange-300 bg-orange-50 text-orange-700 shadow-sm'
+      : 'border-transparent text-slate-500 hover:text-[#0070c0]';
+
+  return (
+    <li className={`group relative hover:z-[120] ${shouldDim ? 'opacity-30' : ''}`}>
+      <button
+        type="button"
+        className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-sm transition ${itemClass}`}
+      >
+        {moved && deleted ? (
+          <ChangePopover type="movedDeleted" data={{ moved, deleted }} />
+        ) : (
+          <>
+            {moved && <ChangePopover type="moved" data={moved} />}
+            {deleted && <ChangePopover type="deleted" data={deleted} />}
+          </>
+        )}
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasOwnChange ? 'bg-current' : 'bg-slate-200'}`} />
+        <span className={`min-w-0 flex-1 truncate ${hasOwnChange ? 'font-black' : 'font-medium'}`}>{node.title}</span>
+        {moved && <ChangeBadge type="moved" count={moved.movedCount} />}
+        {deleted && <ChangeBadge type="deleted" count={deleted.deletedCount} />}
+      </button>
+    </li>
+  );
+}
+
+function PreviewAddedMenuCard({ item }) {
+  return (
+    <div className="group relative rounded-lg border border-lime-300 bg-lime-50 p-3 text-lime-800 shadow-sm hover:z-[120]">
+      <ChangePopover type="added" data={item} />
+      <div className="flex flex-wrap items-center gap-2">
+        <ChangeBadge type="added" count={item.addedCount} />
+        <span className="text-sm font-black text-slate-900">{item.title}</span>
+      </div>
+      <AddedChildrenTree nodes={item.children || []} />
+    </div>
+  );
+}
+
+function AdminFinalMenuVisualView({ overview, filter }) {
+  const topNodes = overview.baseMenuTree || [];
+  const [selectedTopIndex, setSelectedTopIndex] = useState(0);
+
+  if (!topNodes.length) return null;
+
+  const selectedIndex = Math.min(selectedTopIndex, topNodes.length - 1);
+  const selectedTopNode = topNodes[selectedIndex] || topNodes[0];
+  const selectedTopTitle = String(selectedTopNode?.title || '').trim();
+  const selectedChildren = Array.isArray(selectedTopNode?.children) ? selectedTopNode.children : [];
+  const topLevelAddedKey = '?遺꾨쪟 異붽?';
+  const topLevelAddedItems = overview.addedMenusByPath?.[topLevelAddedKey] || [];
+
+  return (
+    <div className="space-y-5">
+      <section className="overflow-visible rounded-xl border border-slate-200 bg-[#f5f6fb] shadow-sm">
+        <header className="bg-[#004f91] text-white">
+          <div className="flex items-center justify-between gap-4 border-b border-white/10 px-6 py-3">
+            <div className="flex min-w-0 items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-black text-[#004f91]">JJ</div>
+                <span className="whitespace-nowrap text-lg font-black">JJ 전주대학교</span>
+              </div>
+              <div className="relative hidden md:block">
+                <input
+                  type="text"
+                  readOnly
+                  placeholder="검색어를 입력하세요"
+                  className="w-80 rounded-md border border-white/20 bg-white/10 py-1.5 pl-4 pr-10 text-sm outline-none"
+                />
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60" size={16} />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button type="button" className="rounded-full p-2 text-white/90"><Grid size={20} /></button>
+              <button type="button" className="rounded-full p-2 text-white/90"><HelpCircle size={20} /></button>
+              <button type="button" className="rounded-full p-2 text-white/90"><Settings size={20} /></button>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 text-xs font-black text-[#004f91]">JJ</div>
+            </div>
+          </div>
+
+          <nav className="flex min-h-11 items-center gap-1 overflow-x-auto bg-[#0070c0] px-6">
+            {topNodes.map((node, index) => {
+              const title = String(node?.title || '').trim();
+              const key = getMenuKey(node, [title]);
+              const isSelected = index === selectedIndex;
+
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSelectedTopIndex(index)}
+                  className={`min-h-11 shrink-0 border-b-4 px-5 py-2 text-sm font-black transition ${
+                    isSelected
+                      ? 'border-amber-400 bg-white/10 text-white'
+                      : 'border-transparent text-white/80 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  {title}
+                </button>
+              );
+            })}
+            <div className="ml-auto flex items-center gap-4 border-l border-white/10 pl-4">
+              <div className="flex items-center gap-2 text-xs font-bold">
+                <span className="opacity-70">on</span>
+                <div className="relative h-4 w-8 rounded-full bg-amber-400">
+                  <div className="absolute right-0.5 top-0.5 h-3 w-3 rounded-full bg-white" />
+                </div>
+              </div>
+              <List size={18} />
+            </div>
+          </nav>
+        </header>
+
+        <section className="border-b border-slate-200 bg-white shadow-sm">
+          <div className="mx-auto max-w-7xl px-8 py-8">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">{selectedTopTitle}</h3>
+                <p className="mt-1 text-xs font-bold text-slate-400">관리자 읽기 전용 미리보기</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <ChangeBadge type="moved" />
+                <ChangeBadge type="deleted" />
+                <ChangeBadge type="added" />
+              </div>
+            </div>
+
+            {selectedChildren.length === 0 ? (
+              <p className="rounded-lg bg-slate-50 p-5 text-center text-sm font-bold text-slate-400">표시할 하위 메뉴가 없습니다.</p>
+            ) : (
+              <div className="grid gap-x-8 gap-y-6 md:grid-cols-2 xl:grid-cols-5">
+                {selectedChildren.map((middleNode) => {
+                  const middleTitle = String(middleNode?.title || '').trim();
+                  const middlePath = [selectedTopTitle, middleTitle].join(' > ');
+                  const children = Array.isArray(middleNode.children) ? middleNode.children : [];
+                  const addedItems = overview.addedMenusByPath?.[middlePath] || [];
+
+                  return (
+                    <div key={getMenuKey(middleNode, [selectedTopTitle, middleTitle])} className="space-y-3 rounded-xl p-3">
+                      <div className="border-b border-slate-100 pb-2">
+                        <PreviewChangeMenuItem
+                          node={middleNode}
+                          pathTitles={[selectedTopTitle]}
+                          overview={overview}
+                          filter={filter}
+                        />
+                      </div>
+                      <ul className="space-y-1.5">
+                        {children.map((child) => (
+                          <PreviewChangeMenuItem
+                            key={getMenuKey(child, [selectedTopTitle, middleTitle, String(child?.title || '').trim()])}
+                            node={child}
+                            pathTitles={[selectedTopTitle, middleTitle]}
+                            overview={overview}
+                            filter={filter}
+                          />
+                        ))}
+                      </ul>
+                      {addedItems.length > 0 && (filter === 'all' || filter === 'added') && (
+                        <div className="space-y-2 rounded-lg border border-lime-200 bg-lime-50 p-2">
+                          {addedItems.map((item) => (
+                            <PreviewAddedMenuCard key={item.addedKey} item={item} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <div className="flex min-h-[430px] overflow-hidden">
+          <aside className="hidden w-72 flex-col space-y-8 overflow-y-auto bg-[#004f91] p-6 text-white lg:flex">
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white text-2xl font-black text-[#004f91] shadow-xl">JJ</div>
+              <div>
+                <h2 className="text-xl font-black">제이제이</h2>
+                <p className="text-sm text-blue-200">인터페이스학과</p>
+              </div>
+              <div className="flex gap-2">
+                <button type="button" className="rounded-lg bg-white/10 p-2"><Settings size={16} /></button>
+                <button type="button" className="rounded-lg bg-white/10 p-2"><Monitor size={16} /></button>
+                <button type="button" className="rounded-lg bg-white/10 p-2"><User size={16} /></button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-2">
+                <h3 className="text-sm font-black">나의 메뉴</h3>
+                <span className="rounded bg-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">view</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[...Array(11)].map((_, index) => (
+                  <div key={index} className="flex aspect-square flex-col items-center justify-center rounded-lg bg-white p-1 text-center shadow-sm">
+                    <div className="mb-1 text-slate-400">
+                      {index % 4 === 0 ? <Calendar size={18} /> : index % 4 === 1 ? <BookOpen size={18} /> : index % 4 === 2 ? <GraduationCap size={18} /> : <Users size={18} />}
+                    </div>
+                    <span className="text-[10px] font-medium leading-tight text-slate-600">메뉴 {index + 1}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          <main className="flex-1 overflow-y-auto bg-[#f5f6fb] p-8">
+            <div className="mx-auto max-w-5xl space-y-8">
+              <div className="flex items-center justify-between rounded-lg bg-[#1a3a5f] p-4 text-white shadow-md">
+                <div className="flex items-center gap-4">
+                  <h2 className="border-r border-white/20 pr-4 text-lg font-black">One-Stop 서비스</h2>
+                  <span className="text-sm opacity-80">2026학년도 1학기</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-400" />
+                  <span className="text-xs font-bold">실시간 데이터 연결됨</span>
+                </div>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
+                  <div className="flex items-center justify-between border-b border-slate-100 p-4">
+                    <h3 className="flex items-center gap-2 font-black text-slate-800">
+                      <Calendar size={18} className="text-amber-500" />
+                      SCHEDULE
+                    </h3>
+                    <span className="text-xs text-slate-400">05.13</span>
+                  </div>
+                  <div className="flex flex-1 flex-col items-center justify-center space-y-4 p-6">
+                    <div className="text-4xl font-black text-slate-200">2026.05</div>
+                    <div className="grid w-full max-w-sm grid-cols-7 gap-2 text-center">
+                      {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                        <div key={day} className="text-[10px] font-black text-slate-400">{day}</div>
+                      ))}
+                      {[...Array(31)].map((_, index) => (
+                        <div key={index} className={`rounded-md py-2 text-xs ${index + 1 === 13 ? 'bg-[#004f91] font-black text-white' : 'text-slate-600'}`}>
+                          {index + 1}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <h3 className="font-black text-slate-800">MY VALUE</h3>
+                    <button type="button" className="flex items-center text-xs text-slate-400">더보기<ChevronRight size={12} /></button>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-slate-600">MBTI</span>
+                      <span className="text-sm font-black text-[#004f91]">ENTJ</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-slate-600">STRONG 검사</span>
+                      <span className="text-sm text-slate-400">진행 예정</span>
+                    </div>
+                    <div className="space-y-2 pt-4">
+                      <p className="text-xs text-slate-400">진로로드맵 완성도</p>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div className="h-full w-3/4 bg-amber-400" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-4 flex items-center gap-2">
+                  <Bell size={18} className="text-[#004f91]" />
+                  <h3 className="font-black text-slate-800">공지사항</h3>
+                </div>
+                <div className="space-y-3">
+                  {[1, 2, 3].map((item) => (
+                    <div key={item} className="flex items-center justify-between border-b border-slate-50 pb-2 text-sm">
+                      <span className="mr-4 truncate text-slate-600">전주대학교 2026학년도 1학기 수강바구니 및 수강신청 안내</span>
+                      <span className="shrink-0 text-xs text-slate-400">2026-05-13</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+
+        <footer className="flex items-center justify-between bg-slate-900 px-6 py-2 text-[10px] text-white">
+          <span className="flex items-center gap-1"><Monitor size={10} /> 데스크톱 모드</span>
+          <span className="font-medium">관리자 읽기 전용 전체 최종 메뉴 미리보기입니다.</span>
+        </footer>
+      </section>
+
+      {topLevelAddedItems.length > 0 && (filter === 'all' || filter === 'added') && (
+        <section className="rounded-xl border border-lime-200 bg-white p-5 shadow-sm">
+          <div className="mb-4">
+            <h3 className="text-lg font-black text-slate-900">새로 추가된 대분류 미리보기</h3>
+            <p className="mt-1 text-xs font-bold text-slate-400">기존 대분류 탭에 섞지 않고 별도 카드로 표시합니다.</p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {topLevelAddedItems.map((item) => (
+              <PreviewAddedMenuCard key={item.addedKey} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -282,16 +660,22 @@ function FinalMenuNode({ node, pathTitles = [], overview, filter }) {
   const shouldDim = filter !== 'all'
     && !((filter === 'moved' && moved) || (filter === 'deleted' && deleted) || (filter === 'added' && hasAdded));
   const itemClass = deleted
-    ? 'border-red-300 bg-red-50 text-red-700 opacity-80'
+    ? 'border-red-300 bg-red-50 text-red-700'
     : moved
       ? 'border-orange-300 bg-orange-50 text-orange-700'
       : 'border-slate-200 bg-white text-slate-800';
 
   return (
-    <li className={shouldDim ? 'opacity-35' : ''}>
+    <li className={`relative hover:z-[120] ${shouldDim ? 'opacity-35' : ''}`}>
       <div className={`group relative flex min-h-9 items-center gap-2 rounded-lg border px-3 py-2 ${itemClass}`}>
-        {moved && <ChangePopover type="moved" data={moved} />}
-        {deleted && <ChangePopover type="deleted" data={deleted} />}
+        {moved && deleted ? (
+          <ChangePopover type="movedDeleted" data={{ moved, deleted }} />
+        ) : (
+          <>
+            {moved && <ChangePopover type="moved" data={moved} />}
+            {deleted && <ChangePopover type="deleted" data={deleted} />}
+          </>
+        )}
         {moved && <ChangeBadge type="moved" count={moved.movedCount} />}
         {deleted && <ChangeBadge type="deleted" count={deleted.deletedCount} />}
         <span className={`text-sm ${hasOwnChange ? 'font-black' : 'font-bold'}`}>{node.title}</span>
@@ -344,6 +728,7 @@ export default function AdminDashboard({ onLogout }) {
   const [finalOverviewError, setFinalOverviewError] = useState('');
   const [hasLoadedFinalOverview, setHasLoadedFinalOverview] = useState(false);
   const [finalOverviewFilter, setFinalOverviewFilter] = useState('all');
+  const [finalOverviewView, setFinalOverviewView] = useState('list');
 
   const selectedLog = useMemo(() => {
     const record = selectedDetail?.submission || selectedDetail?.draft;
@@ -583,9 +968,14 @@ export default function AdminDashboard({ onLogout }) {
     { id: 'added', label: '추가만' },
   ];
 
+  const finalOverviewViews = [
+    { id: 'list', label: '리스트 보기' },
+    { id: 'visual', label: '비주얼 보기' },
+  ];
+
   return (
     <div className="min-h-screen bg-[#f5f6fb]">
-      <header className="sticky top-0 z-40 bg-[#004f91] text-white shadow-lg">
+      <header className="sticky top-0 z-[700] bg-[#004f91] text-white shadow-lg">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div>
             <h1 className="text-xl font-black">관리자 대시보드</h1>
@@ -955,21 +1345,39 @@ export default function AdminDashboard({ onLogout }) {
                       <span className="rounded-full bg-lime-50 px-3 py-1 text-lime-700 ring-1 ring-lime-200">초록: 사용자 추가 메뉴</span>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 rounded-lg bg-slate-100 p-1">
-                    {finalOverviewFilters.map((filter) => (
-                      <button
-                        key={filter.id}
-                        type="button"
-                        onClick={() => setFinalOverviewFilter(filter.id)}
-                        className={`rounded-md px-3 py-1.5 text-xs font-black transition ${
-                          finalOverviewFilter === filter.id
-                            ? 'bg-white text-[#004f91] shadow-sm'
-                            : 'text-slate-500 hover:text-slate-800'
-                        }`}
-                      >
-                        {filter.label}
-                      </button>
-                    ))}
+                  <div className="flex flex-wrap justify-end gap-3">
+                    <div className="flex flex-wrap gap-2 rounded-lg bg-slate-100 p-1">
+                      {finalOverviewViews.map((view) => (
+                        <button
+                          key={view.id}
+                          type="button"
+                          onClick={() => setFinalOverviewView(view.id)}
+                          className={`rounded-md px-3 py-1.5 text-xs font-black transition ${
+                            finalOverviewView === view.id
+                              ? 'bg-white text-[#004f91] shadow-sm'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          {view.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-2 rounded-lg bg-slate-100 p-1">
+                      {finalOverviewFilters.map((filter) => (
+                        <button
+                          key={filter.id}
+                          type="button"
+                          onClick={() => setFinalOverviewFilter(filter.id)}
+                          className={`rounded-md px-3 py-1.5 text-xs font-black transition ${
+                            finalOverviewFilter === filter.id
+                              ? 'bg-white text-[#004f91] shadow-sm'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          {filter.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </section>
@@ -982,6 +1390,11 @@ export default function AdminDashboard({ onLogout }) {
                 <section className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm font-bold text-slate-400 shadow-sm">
                   아직 비교할 최종 메뉴 데이터가 없습니다.
                 </section>
+              ) : finalOverviewView === 'visual' ? (
+                <AdminFinalMenuVisualView
+                  overview={finalOverview}
+                  filter={finalOverviewFilter}
+                />
               ) : (
                 <div className="space-y-4">
                   {(finalOverview.baseMenuTree || []).map((topNode) => (
