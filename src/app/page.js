@@ -13,7 +13,7 @@ import { initialMenu } from '@/data/initialMenu';
 import { createDetailedChangeLog } from '@/lib/changeLog';
 import { validateTree } from '@/lib/menuUtils';
 
-const ADMIN_CODE = 'JJ201562004';
+const ADMIN_CODE = 'BDM555';
 
 const STORAGE_KEYS = {
   code: 'jjstar_auth_code',
@@ -473,6 +473,11 @@ export default function Home() {
   const [loginCode, setLoginCode] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isTesterCodeFormOpen, setIsTesterCodeFormOpen] = useState(false);
+  const [testerCodeName, setTesterCodeName] = useState('');
+  const [testerCodeHakb, setTesterCodeHakb] = useState('');
+  const [testerCodeError, setTesterCodeError] = useState('');
+  const [isRequestingTesterCode, setIsRequestingTesterCode] = useState(false);
   const [changeLog, setChangeLog] = useState([]);
   const [undoStack, setUndoStack] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
@@ -952,6 +957,89 @@ export default function Home() {
     setLoginCode(replaceLoginCodeSelection(event.currentTarget, pasted));
   };
 
+  const resetTesterCodeResult = () => {
+    setTesterCodeError('');
+  };
+
+  const handleTesterCodeIssued = async (code, alreadyIssued) => {
+    let copied = false;
+
+    try {
+      await navigator.clipboard.writeText(code);
+      copied = true;
+    } catch (error) {
+      console.error('[tester-code] auto copy failed:', error);
+    }
+
+    setLoginCode(normalizeAuthCode(code));
+    setIsTesterCodeFormOpen(false);
+    setTesterCodeError('');
+
+    if (copied) {
+      showActionToast(
+        alreadyIssued
+          ? '기존 발급 코드가 확인되어 복사되었습니다.'
+          : '테스터 코드가 발급되어 복사되었습니다.'
+      );
+      return;
+    }
+
+    showActionToast('코드가 입력되었습니다. 필요하면 직접 복사해 주세요.');
+  };
+
+  const handleTesterCodeRequest = async (event) => {
+    event?.preventDefault();
+    if (isRequestingTesterCode) return;
+
+    const nickname = testerCodeName.trim();
+    const hakb = testerCodeHakb.trim();
+
+    resetTesterCodeResult();
+
+    if (!nickname) {
+      setTesterCodeError('닉네임을 입력해주세요.');
+      return;
+    }
+
+    if (!hakb) {
+      setTesterCodeError('학번을 입력해주세요.');
+      return;
+    }
+
+    if (hakb.length > 10) {
+      setTesterCodeError('학번은 10자 이하로 입력해주세요.');
+      return;
+    }
+
+    if (!/^\d+$/.test(hakb)) {
+      setTesterCodeError('학번은 숫자만 입력해주세요.');
+      return;
+    }
+
+    setIsRequestingTesterCode(true);
+
+    try {
+      const res = await fetch('/api/request-tester-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname, hakb }),
+      });
+      const result = await res.json();
+
+      if (!result.ok) {
+        setTesterCodeError(result.message || '테스터 코드 발급 중 오류가 발생했습니다.');
+        return;
+      }
+
+      await handleTesterCodeIssued(result.code, Boolean(result.alreadyIssued));
+    } catch (error) {
+      console.error('[tester-code] request failed:', error);
+      setTesterCodeError('테스터 코드 발급 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsRequestingTesterCode(false);
+    }
+  };
+
   const handleReset = () => {
     if (confirm('메뉴를 초기 상태로 되돌리시겠습니까?')) {
       undoStackRef.current = [];
@@ -1278,6 +1366,12 @@ export default function Home() {
 
   const loginScreen = (
     <main className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center">
+      {lastAction && (
+        <div className="fixed bottom-8 left-1/2 z-[200] -translate-x-1/2 rounded-full bg-slate-900 px-6 py-3 text-white shadow-2xl animate-in fade-in slide-in-from-bottom-4">
+          <span className="text-sm font-medium">{lastAction}</span>
+        </div>
+      )}
+
       <div className="w-20 h-20 bg-[#004f91] rounded-2xl flex items-center justify-center text-white mb-8 shadow-2xl shadow-blue-100">
         <LayoutGrid size={40} />
       </div>
@@ -1316,6 +1410,81 @@ export default function Home() {
         <p className="mt-4 text-xs text-slate-400 text-left">
           인증코드는 테스터별 진행 데이터 임시저장 목적으로만 사용합니다.
         </p>
+      </div>
+
+      <div className="w-full max-w-sm mb-8 text-left">
+        <button
+          type="button"
+          onClick={() => {
+            setIsTesterCodeFormOpen((value) => !value);
+            resetTesterCodeResult();
+          }}
+          className="w-full rounded-xl border border-[#004f91] bg-white px-5 py-3 text-sm font-black text-[#004f91] shadow-sm transition hover:bg-blue-50"
+        >
+          테스터 코드 요청
+        </button>
+
+        {isTesterCodeFormOpen && (
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-blue-50/50">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  닉네임
+                </label>
+                <input
+                  type="text"
+                  value={testerCodeName}
+                  onChange={(event) => {
+                    setTesterCodeName(event.target.value);
+                    resetTesterCodeResult();
+                  }}
+                  placeholder="닉네임을 입력해주세요"
+                  className="w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#004f91] focus:bg-white"
+                  autoComplete="name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  학번
+                </label>
+                <input
+                  type="text"
+                  value={testerCodeHakb}
+                  onChange={(event) => {
+                    setTesterCodeHakb(event.target.value);
+                    resetTesterCodeResult();
+                  }}
+                  placeholder="학번을 입력해주세요"
+                  className="w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#004f91] focus:bg-white"
+                  autoComplete="off"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={10}
+                />
+              </div>
+            </div>
+
+            <p className="mt-4 text-xs leading-relaxed text-slate-500">
+              닉네임과 학번은 중복여부와 테스트코드 분실 시 확인용으로만 이용됩니다.
+            </p>
+
+            {testerCodeError && (
+              <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-bold text-red-600">
+                {testerCodeError}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleTesterCodeRequest}
+              disabled={isRequestingTesterCode}
+              className="mt-5 flex w-full items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-black text-white transition hover:bg-slate-700 disabled:bg-slate-300"
+            >
+              {isRequestingTesterCode ? '코드 요청 중...' : '코드 요청하기'}
+            </button>
+          </div>
+        )}
       </div>
 
       <button
