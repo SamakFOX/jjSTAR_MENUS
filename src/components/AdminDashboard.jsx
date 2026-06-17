@@ -116,6 +116,10 @@ const adminTabs = [
 
 const getMaxCount = (items, key) => Math.max(1, ...items.map((item) => Number(item[key]) || 0));
 
+const getSubmissionKey = (submission, index = 0) => (
+  submission?.id || submission?.submitted_at || `submission-${index}`
+);
+
 function TrendBarList({ items, valueKey, labelKey, emptyText }) {
   if (!items.length) {
     return <p className="rounded-lg bg-slate-50 p-4 text-sm font-bold text-slate-400">{emptyText}</p>;
@@ -730,13 +734,23 @@ export default function AdminDashboard({ adminCode = '', onLogout }) {
   const [hasLoadedFinalOverview, setHasLoadedFinalOverview] = useState(false);
   const [finalOverviewFilter, setFinalOverviewFilter] = useState('all');
   const [finalOverviewView, setFinalOverviewView] = useState('list');
+  const [selectedSubmissionKey, setSelectedSubmissionKey] = useState('');
+
+  const selectedSubmissions = useMemo(
+    () => (Array.isArray(selectedDetail?.submissions) ? selectedDetail.submissions : []),
+    [selectedDetail]
+  );
+
+  const selectedSubmission = useMemo(() => (
+    selectedSubmissions.find((item, index) => getSubmissionKey(item, index) === selectedSubmissionKey) || null
+  ), [selectedSubmissionKey, selectedSubmissions]);
 
   const selectedLog = useMemo(() => {
-    const record = selectedDetail?.submission || selectedDetail?.draft;
+    const record = selectedSubmission || selectedDetail?.draft;
     return Array.isArray(record?.change_log) ? record.change_log.slice().reverse() : [];
-  }, [selectedDetail]);
+  }, [selectedDetail, selectedSubmission]);
 
-  const selectedIntention = selectedDetail?.submission?.intention || selectedDetail?.draft?.intention || '';
+  const selectedIntention = selectedSubmission?.intention || selectedDetail?.draft?.intention || '';
 
   const fetchJson = useCallback(async (url) => {
     const res = await fetch(url, {
@@ -793,6 +807,7 @@ export default function AdminDashboard({ adminCode = '', onLogout }) {
       setError('');
     }
     setSelectedCode(authCode);
+    setSelectedSubmissionKey('');
 
     try {
       const result = await fetchJson(`/api/admin/participant?authCode=${encodeURIComponent(authCode)}`);
@@ -986,15 +1001,17 @@ export default function AdminDashboard({ adminCode = '', onLogout }) {
     }
   };
 
-  const openPreview = () => {
-    if (!selectedDetail?.viewMenuData) return;
-    setPreviewItems(selectedDetail.viewMenuData);
+  const openPreview = (items = null) => {
+    const nextItems = items || selectedSubmission?.menu_data || selectedDetail?.draft?.menu_data || selectedDetail?.viewMenuData;
+    if (!nextItems) return;
+    setPreviewItems(nextItems);
     setIsPreviewOpen(true);
   };
 
   const returnToList = () => {
     setSelectedCode(null);
     setSelectedDetail(null);
+    setSelectedSubmissionKey('');
     setPreviewItems(null);
     setIsPreviewOpen(false);
   };
@@ -1533,12 +1550,12 @@ export default function AdminDashboard({ adminCode = '', onLogout }) {
                 </button>
                 <button
                   type="button"
-                  onClick={openPreview}
-                  disabled={!selectedDetail?.viewMenuData}
+                  onClick={() => openPreview()}
+                  disabled={!selectedSubmission?.menu_data && !selectedDetail?.draft?.menu_data}
                   className="flex items-center gap-2 rounded-lg bg-[#004f91] px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#003d70] disabled:bg-slate-300"
                 >
                   <Eye size={16} />
-                  미리보기 보기
+                  선택본 미리보기
                 </button>
               </div>
             </div>
@@ -1573,6 +1590,77 @@ export default function AdminDashboard({ adminCode = '', onLogout }) {
                   </p>
                 </div>
               </div>
+
+              <div className="mt-6">
+                <h3 className="text-sm font-black text-slate-900">제출 이력</h3>
+                {selectedSubmissions.length === 0 ? (
+                  <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-5">
+                    <p className="text-sm font-bold text-slate-500">아직 최종 제출 이력이 없습니다.</p>
+                    <p className="mt-1 text-sm text-slate-400">현재 임시저장본은 별도로 확인할 수 있습니다.</p>
+                  </div>
+                ) : (
+                  <div className="mt-3 overflow-x-auto rounded-lg border border-slate-100">
+                    <table className="w-full min-w-[720px] text-left text-sm">
+                      <thead className="bg-slate-50 text-xs font-black text-slate-500">
+                        <tr>
+                          <th className="px-4 py-3">회차</th>
+                          <th className="px-4 py-3">제출시각</th>
+                          <th className="px-4 py-3">작성의도</th>
+                          <th className="px-4 py-3 text-right">변경이력</th>
+                          <th className="px-4 py-3 text-right">보기</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {selectedSubmissions.map((submission, index) => {
+                          const submissionKey = getSubmissionKey(submission, index);
+                          const isSelected = selectedSubmissionKey === submissionKey;
+
+                          return (
+                            <tr key={submissionKey} className={isSelected ? 'bg-blue-50/70' : 'bg-white'}>
+                              <td className="px-4 py-3 font-black text-slate-800">{submission.round}차 제출</td>
+                              <td className="px-4 py-3 text-slate-500">{formatDateTime(submission.submitted_at)}</td>
+                              <td className="px-4 py-3 font-bold text-slate-600">{submission.hasIntention ? '있음' : '없음'}</td>
+                              <td className="px-4 py-3 text-right font-black text-slate-700">{submission.changeLogCount}</td>
+                              <td className="px-4 py-3 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSubmissionKey(submissionKey)}
+                                  className={`rounded-md px-3 py-1.5 text-xs font-black transition ${
+                                    isSelected
+                                      ? 'bg-[#004f91] text-white'
+                                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  상세보기
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {selectedSubmission && (
+                <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-base font-black text-slate-900">{selectedSubmission.round}차 제출 상세</h3>
+                      <p className="mt-1 text-xs font-bold text-slate-400">{formatDateTime(selectedSubmission.submitted_at)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => openPreview(selectedSubmission.menu_data)}
+                      className="flex items-center gap-2 rounded-lg bg-[#004f91] px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#003d70]"
+                    >
+                      <Eye size={16} />
+                      제출 메뉴 미리보기
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6">
                 <h3 className="text-sm font-black text-slate-900">메뉴 구성 의도</h3>

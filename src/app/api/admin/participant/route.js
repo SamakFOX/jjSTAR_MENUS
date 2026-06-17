@@ -10,6 +10,28 @@ const statusLabel = {
 
 const normalizeAuthCode = (value) => String(value || '').trim().toUpperCase();
 
+const getSubmissionKey = (submission) => (
+  submission?.id || submission?.submitted_at || ''
+);
+
+const withSubmissionRounds = (submissions) => {
+  const orderedAsc = [...(submissions || [])].sort(
+    (a, b) => new Date(a.submitted_at || 0) - new Date(b.submitted_at || 0)
+  );
+  const roundByKey = new Map(
+    orderedAsc.map((item, index) => [getSubmissionKey(item) || `submission-${index}`, index + 1])
+  );
+
+  return [...(submissions || [])]
+    .sort((a, b) => new Date(b.submitted_at || 0) - new Date(a.submitted_at || 0))
+    .map((item, index) => ({
+      ...item,
+      round: roundByKey.get(getSubmissionKey(item) || `submission-${index}`) || 1,
+      changeLogCount: Array.isArray(item.change_log) ? item.change_log.length : 0,
+      hasIntention: String(item.intention || '').trim().length > 0,
+    }));
+};
+
 export async function GET(request) {
   if (!(await verifyAdminRequest(request, supabaseAdmin))) {
     return NextResponse.json({ ok: false, error: 'Unauthorized', message: 'Unauthorized' }, { status: 403 });
@@ -34,11 +56,10 @@ export async function GET(request) {
         .maybeSingle(),
       supabaseAdmin
         .from('submissions')
-        .select('code, menu_data, change_log, intention, submitted_at')
+        .select('id, code, menu_data, change_log, intention, submitted_at')
         .eq('code', authCode)
         .order('submitted_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+        .limit(100),
       supabaseAdmin
         .from('drafts')
         .select('auth_code, menu_data, change_log, intention, updated_at')
@@ -59,7 +80,8 @@ export async function GET(request) {
       );
     }
 
-    const submission = submissionResult.data || null;
+    const submissions = withSubmissionRounds(submissionResult.data || []);
+    const submission = submissions[0] || null;
     const draft = draftResult.data || null;
     const status = submission ? 'submitted' : draft ? 'draft' : 'not_started';
     const viewSource = submission ? 'submission' : draft ? 'draft' : null;
@@ -69,9 +91,11 @@ export async function GET(request) {
       ok: true,
       authCode,
       label: authCodeRecord?.label || '',
+      hakb: authCodeRecord?.hakb || '',
       status,
       statusLabel: statusLabel[status],
       submission,
+      submissions,
       draft,
       viewSource,
       viewMenuData,
