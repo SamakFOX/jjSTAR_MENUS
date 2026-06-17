@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
+import { verifyAdminRequest } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-const ADMIN_CODE = 'JJ201562004';
-const isAdminRequest = (request) => request.headers.get('x-admin-code') === ADMIN_CODE;
-
 export async function GET(request) {
-  if (!isAdminRequest(request)) {
-    return NextResponse.json({ ok: false, message: 'Forbidden.' }, { status: 403 });
+  if (!(await verifyAdminRequest(request, supabaseAdmin))) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized', message: 'Unauthorized' }, { status: 403 });
   }
 
   try {

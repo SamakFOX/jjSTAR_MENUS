@@ -7,6 +7,7 @@ import {
   BookOpen,
   Calendar,
   ChevronRight,
+  Download,
   Eye,
   GraduationCap,
   Grid,
@@ -22,8 +23,6 @@ import {
   X,
 } from 'lucide-react';
 import PreviewModal from '@/components/PreviewModal';
-
-const ADMIN_CODE = 'JJ201562004';
 
 const formatDateTime = (value) => {
   if (!value) return '-';
@@ -700,7 +699,7 @@ function FinalMenuNode({ node, pathTitles = [], overview, filter }) {
   );
 }
 
-export default function AdminDashboard({ onLogout }) {
+export default function AdminDashboard({ adminCode = '', onLogout }) {
   const [summary, setSummary] = useState(emptySummary);
   const [participants, setParticipants] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
@@ -718,6 +717,8 @@ export default function AdminDashboard({ onLogout }) {
   const [accessLogFilter, setAccessLogFilter] = useState('');
   const [isAccessLogLoading, setIsAccessLogLoading] = useState(false);
   const [accessLogError, setAccessLogError] = useState('');
+  const [isExportingHistory, setIsExportingHistory] = useState(false);
+  const [exportError, setExportError] = useState('');
   const [activeTab, setActiveTab] = useState('participants');
   const [trends, setTrends] = useState(emptyTrends);
   const [isTrendsLoading, setIsTrendsLoading] = useState(false);
@@ -740,7 +741,7 @@ export default function AdminDashboard({ onLogout }) {
   const fetchJson = useCallback(async (url) => {
     const res = await fetch(url, {
       headers: {
-        'x-admin-code': ADMIN_CODE,
+        'x-admin-code': adminCode,
       },
     });
     const result = await res.json();
@@ -750,7 +751,7 @@ export default function AdminDashboard({ onLogout }) {
     }
 
     return result;
-  }, []);
+  }, [adminCode]);
 
   const loadParticipants = useCallback(async ({ refresh = false } = {}) => {
     if (refresh) {
@@ -934,6 +935,57 @@ export default function AdminDashboard({ onLogout }) {
     }
   };
 
+  const getDownloadFilename = (response) => {
+    const disposition = response.headers.get('content-disposition') || '';
+    const encodedMatch = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (encodedMatch?.[1]) {
+      return decodeURIComponent(encodedMatch[1]);
+    }
+
+    const plainMatch = disposition.match(/filename="?([^";]+)"?/i);
+    return plainMatch?.[1] || 'tester-history.xlsx';
+  };
+
+  const downloadTesterHistory = async (authCode = '') => {
+    setIsExportingHistory(true);
+    setExportError('');
+
+    try {
+      const suffix = authCode ? `?authCode=${encodeURIComponent(authCode)}` : '';
+      const response = await fetch(`/api/admin/export-tester-history${suffix}`, {
+        headers: {
+          'x-admin-code': adminCode,
+        },
+      });
+
+      if (!response.ok) {
+        let message = '테스터 이력 엑셀 다운로드에 실패했습니다.';
+        try {
+          const result = await response.json();
+          message = result.message || message;
+        } catch (jsonError) {
+          // The export endpoint normally returns JSON only for errors.
+        }
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = getDownloadFilename(response);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (downloadError) {
+      console.error('[admin] tester history export failed:', downloadError);
+      setExportError('테스터 이력 엑셀 다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsExportingHistory(false);
+    }
+  };
+
   const openPreview = () => {
     if (!selectedDetail?.viewMenuData) return;
     setPreviewItems(selectedDetail.viewMenuData);
@@ -1000,6 +1052,19 @@ export default function AdminDashboard({ onLogout }) {
             </button>
             <button
               type="button"
+              onClick={downloadTesterHistory}
+              disabled={isExportingHistory}
+              className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold transition hover:bg-white/20 disabled:opacity-60"
+            >
+              {isExportingHistory ? (
+                <RefreshCw size={16} className="animate-spin" />
+              ) : (
+                <Download size={16} />
+              )}
+              {isExportingHistory ? '다운로드 중...' : '테스터 이력 다운로드'}
+            </button>
+            <button
+              type="button"
               onClick={onLogout}
               className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold transition hover:bg-white/20"
             >
@@ -1020,6 +1085,11 @@ export default function AdminDashboard({ onLogout }) {
           {refreshError && (
             <span className="rounded-full bg-red-50 px-3 py-1 text-red-600 ring-1 ring-red-100">
               {refreshError}
+            </span>
+          )}
+          {exportError && (
+            <span className="rounded-full bg-red-50 px-3 py-1 text-red-600 ring-1 ring-red-100">
+              {exportError}
             </span>
           )}
           {isLoading && (
@@ -1447,6 +1517,19 @@ export default function AdminDashboard({ onLogout }) {
                   className="rounded-lg bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
                 >
                   접속 로그
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadTesterHistory(selectedCode)}
+                  disabled={isExportingHistory}
+                  className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:opacity-60"
+                >
+                  {isExportingHistory ? (
+                    <RefreshCw size={16} className="animate-spin" />
+                  ) : (
+                    <Download size={16} />
+                  )}
+                  {isExportingHistory ? '다운로드 중...' : '이 테스터 이력 다운로드'}
                 </button>
                 <button
                   type="button"

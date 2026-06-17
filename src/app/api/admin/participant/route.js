@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
+import { isAdminHakb, verifyAdminRequest } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-
-const ADMIN_CODE = 'JJ201562004';
 
 const statusLabel = {
   submitted: '최종 제출 완료',
@@ -10,18 +9,17 @@ const statusLabel = {
 };
 
 const normalizeAuthCode = (value) => String(value || '').trim().toUpperCase();
-const isAdminRequest = (request) => request.headers.get('x-admin-code') === ADMIN_CODE;
 
 export async function GET(request) {
-  if (!isAdminRequest(request)) {
-    return NextResponse.json({ ok: false, message: 'Forbidden.' }, { status: 403 });
+  if (!(await verifyAdminRequest(request, supabaseAdmin))) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized', message: 'Unauthorized' }, { status: 403 });
   }
 
   try {
     const { searchParams } = new URL(request.url);
     const authCode = normalizeAuthCode(searchParams.get('authCode'));
 
-    if (!authCode || authCode === ADMIN_CODE) {
+    if (!authCode) {
       return NextResponse.json(
         { ok: false, message: 'Auth code is required.' },
         { status: 400 }
@@ -31,7 +29,7 @@ export async function GET(request) {
     const [authResult, submissionResult, draftResult] = await Promise.all([
       supabaseAdmin
         .from('auth_codes')
-        .select('code, label')
+        .select('code, label, hakb')
         .eq('code', authCode)
         .maybeSingle(),
       supabaseAdmin
@@ -53,6 +51,14 @@ export async function GET(request) {
     if (draftResult.error) throw draftResult.error;
 
     const authCodeRecord = authResult.data || null;
+
+    if (isAdminHakb(authCodeRecord?.hakb)) {
+      return NextResponse.json(
+        { ok: false, message: 'Auth code is required.' },
+        { status: 400 }
+      );
+    }
+
     const submission = submissionResult.data || null;
     const draft = draftResult.data || null;
     const status = submission ? 'submitted' : draft ? 'draft' : 'not_started';

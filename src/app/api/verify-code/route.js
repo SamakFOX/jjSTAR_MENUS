@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isAdminHakb } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function POST(request) {
@@ -15,7 +16,7 @@ export async function POST(request) {
 
     const { data, error } = await supabaseAdmin
       .from('auth_codes')
-      .select('code, label, is_active, expires_at, submit_count, max_submit_count')
+      .select('code, label, hakb, is_active, expires_at, submit_count, max_submit_count')
       .eq('code', code)
       .single();
 
@@ -55,6 +56,7 @@ export async function POST(request) {
       message: 'Verified.',
       code: data.code,
       label: data.label || '',
+      role: isAdminHakb(data.hakb) ? 'admin' : 'user',
     });
   } catch (error) {
     console.error('[verify-code] error:', error);

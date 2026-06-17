@@ -926,7 +926,7 @@ export default function PreviewModal({ isOpen, onClose, items: menuTree, setItem
   const activeDragItem = activeId ? findNodeById(menuTree, activeId) : null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:p-8">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:p-8">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

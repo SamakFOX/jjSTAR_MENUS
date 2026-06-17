@@ -13,8 +13,6 @@ import { initialMenu } from '@/data/initialMenu';
 import { createDetailedChangeLog } from '@/lib/changeLog';
 import { validateTree } from '@/lib/menuUtils';
 
-const ADMIN_CODE = 'BDM555';
-
 const STORAGE_KEYS = {
   code: 'jjstar_auth_code',
   userName: 'jjstar_user_name',
@@ -685,6 +683,13 @@ export default function Home() {
         const savedCode = sessionStorage.getItem(STORAGE_KEYS.code) || '';
         const savedUserName = sessionStorage.getItem(STORAGE_KEYS.userName) || DEFAULT_USER_NAME;
         const savedLabel = sessionStorage.getItem(STORAGE_KEYS.label) || '';
+        const savedRole = sessionStorage.getItem(STORAGE_KEYS.role) || '';
+
+        if (savedRole === 'admin') {
+          sessionStorage.removeItem(STORAGE_KEYS.code);
+          if (isActive) setMounted(true);
+          return;
+        }
 
         if (savedCode) {
           try {
@@ -693,7 +698,7 @@ export default function Home() {
             setAuthCode(savedCode);
             setUserName(savedUserName);
             setAuthLabel(savedLabel);
-            if (sessionStorage.getItem(STORAGE_KEYS.role) === 'admin' || savedCode === ADMIN_CODE) {
+            if (savedRole === 'admin') {
               setIsAdminMode(true);
             } else {
               const draft = await loadDraftByAuthCode(savedCode);
@@ -812,19 +817,6 @@ export default function Home() {
     setLoginError('');
 
     try {
-      if (code === ADMIN_CODE) {
-        sessionStorage.setItem(STORAGE_KEYS.code, code);
-        sessionStorage.setItem(STORAGE_KEYS.userName, '관리자');
-        sessionStorage.setItem(STORAGE_KEYS.label, '관리자');
-        sessionStorage.setItem(STORAGE_KEYS.role, 'admin');
-        setAuthCode(code);
-        setUserName('관리자');
-        setAuthLabel('관리자');
-        setIsAdminMode(true);
-        setIsStarted(true);
-        return;
-      }
-
       const res = await fetch('/api/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -837,10 +829,24 @@ export default function Home() {
         return;
       }
 
+      if (result.role === 'admin') {
+        sessionStorage.removeItem(STORAGE_KEYS.code);
+        sessionStorage.setItem(STORAGE_KEYS.userName, DEFAULT_USER_NAME);
+        sessionStorage.setItem(STORAGE_KEYS.label, result.label || '');
+        sessionStorage.setItem(STORAGE_KEYS.role, 'admin');
+        logVisitSafely(code, 'login_success');
+        setAuthCode(code);
+        setUserName(DEFAULT_USER_NAME);
+        setAuthLabel(result.label || '');
+        setIsAdminMode(true);
+        setIsStarted(true);
+        return;
+      }
+
       sessionStorage.setItem(STORAGE_KEYS.code, code);
       sessionStorage.setItem(STORAGE_KEYS.userName, DEFAULT_USER_NAME);
       sessionStorage.setItem(STORAGE_KEYS.label, result.label || '');
-      sessionStorage.removeItem(STORAGE_KEYS.role);
+      sessionStorage.setItem(STORAGE_KEYS.role, 'user');
       logVisitSafely(code, 'login_success');
 
       let draft = null;
@@ -1752,7 +1758,7 @@ export default function Home() {
       {mounted ? (
         isStarted
           ? isAdminMode
-            ? <AdminDashboard onLogout={handleLogout} />
+            ? <AdminDashboard adminCode={authCode} onLogout={handleLogout} />
             : submitStep === 'submitForm'
               ? submitFormScreen
               : submitStep === 'submitted'

@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { initialMenu } from '@/data/initialMenu';
+import { getAdminCodeSet, isAdminHakb, verifyAdminRequest } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-const ADMIN_CODE = 'JJ201562004';
 const PATH_SEPARATOR = ' > ';
-
-const isAdminRequest = (request) => request.headers.get('x-admin-code') === ADMIN_CODE;
 
 const getLatestByCode = (rows, codeKey, dateKey) => {
   const map = new Map();
@@ -114,7 +112,7 @@ const getTreeSignature = (nodes = []) => (
     .join('|')
 );
 
-const buildFinalMenuOverview = ({ submissionsByCode, draftsByCode, labelByCode }) => {
+const buildFinalMenuOverview = ({ submissionsByCode, draftsByCode, labelByCode, adminCodeSet }) => {
   const baseFlat = flattenMenuTree(initialMenu);
   const baseByKey = new Map(baseFlat.map((item) => [item.key, item]));
   const baseKeySet = new Set(baseByKey.keys());
@@ -131,7 +129,7 @@ const buildFinalMenuOverview = ({ submissionsByCode, draftsByCode, labelByCode }
   let submittedCount = 0;
   let draftCount = 0;
 
-  [...codeSet].forEach((authCode) => {
+  [...codeSet].filter((authCode) => !adminCodeSet.has(authCode)).forEach((authCode) => {
     const submission = submissionsByCode.get(authCode);
     const draft = draftsByCode.get(authCode);
     const source = submission ? 'submission' : 'draft';
@@ -274,15 +272,15 @@ const buildFinalMenuOverview = ({ submissionsByCode, draftsByCode, labelByCode }
 };
 
 export async function GET(request) {
-  if (!isAdminRequest(request)) {
-    return NextResponse.json({ ok: false, message: 'Forbidden.' }, { status: 403 });
+  if (!(await verifyAdminRequest(request, supabaseAdmin))) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized', message: 'Unauthorized' }, { status: 403 });
   }
 
   try {
-    const [authResult, submissionResult, draftResult] = await Promise.all([
+    const [authResult, submissionResult, draftResult, adminCodeSet] = await Promise.all([
       supabaseAdmin
         .from('auth_codes')
-        .select('code, label')
+        .select('code, label, hakb')
         .like('code', 'JJST%'),
       supabaseAdmin
         .from('submissions')
@@ -292,19 +290,24 @@ export async function GET(request) {
         .from('drafts')
         .select('auth_code, menu_data, updated_at')
         .order('updated_at', { ascending: false }),
+      getAdminCodeSet(supabaseAdmin),
     ]);
 
     if (authResult.error) console.error('[admin] final menu auth code query error:', authResult.error);
     if (submissionResult.error) throw submissionResult.error;
     if (draftResult.error) throw draftResult.error;
 
-    const labelByCode = new Map((authResult.data || []).map((item) => [item.code, item.label || '']));
+    const labelByCode = new Map(
+      (authResult.data || [])
+        .filter((item) => !isAdminHakb(item.hakb))
+        .map((item) => [item.code, item.label || ''])
+    );
     const submissionsByCode = getLatestByCode(submissionResult.data, 'code', 'submitted_at');
     const draftsByCode = getLatestByCode(draftResult.data, 'auth_code', 'updated_at');
 
     return NextResponse.json({
       ok: true,
-      ...buildFinalMenuOverview({ submissionsByCode, draftsByCode, labelByCode }),
+      ...buildFinalMenuOverview({ submissionsByCode, draftsByCode, labelByCode, adminCodeSet }),
     });
   } catch (error) {
     console.error('[admin] final menu overview failed:', error);

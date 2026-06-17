@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
+import { getAdminCodeSet, isAdminHakb, verifyAdminRequest } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-const ADMIN_CODE = 'JJ201562004';
 const fallbackCodes = ['JJST001', 'JJST002'];
 
 const statusLabel = {
@@ -24,18 +24,16 @@ const getLatestByCode = (rows, codeKey, dateKey) => {
   return map;
 };
 
-const isAdminRequest = (request) => request.headers.get('x-admin-code') === ADMIN_CODE;
-
 export async function GET(request) {
-  if (!isAdminRequest(request)) {
-    return NextResponse.json({ ok: false, message: 'Forbidden.' }, { status: 403 });
+  if (!(await verifyAdminRequest(request, supabaseAdmin))) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized', message: 'Unauthorized' }, { status: 403 });
   }
 
   try {
-    const [authResult, submissionResult, draftResult, accessLogResult] = await Promise.all([
+    const [authResult, submissionResult, draftResult, accessLogResult, adminCodeSet] = await Promise.all([
       supabaseAdmin
         .from('auth_codes')
-        .select('code, label')
+        .select('code, label, hakb')
         .like('code', 'JJST%'),
       supabaseAdmin
         .from('submissions')
@@ -50,6 +48,7 @@ export async function GET(request) {
         .select('auth_code, created_at')
         .not('auth_code', 'is', null)
         .order('created_at', { ascending: false }),
+      getAdminCodeSet(supabaseAdmin),
     ]);
 
     if (authResult.error) console.error('[admin] auth code query error:', authResult.error);
@@ -58,7 +57,9 @@ export async function GET(request) {
     if (accessLogResult.error) console.error('[admin] access log query error:', accessLogResult.error);
 
     const labelByCode = new Map(
-      (authResult.data || []).map((item) => [item.code, item.label || ''])
+      (authResult.data || [])
+        .filter((item) => !isAdminHakb(item.hakb))
+        .map((item) => [item.code, item.label || ''])
     );
     const submissionsByCode = getLatestByCode(submissionResult.data, 'code', 'submitted_at');
     const draftsByCode = getLatestByCode(draftResult.data, 'auth_code', 'updated_at');
@@ -85,14 +86,14 @@ export async function GET(request) {
 
     const codeSet = new Set([
       ...fallbackCodes,
-      ...(authResult.data || []).map((item) => item.code),
+      ...(authResult.data || []).filter((item) => !isAdminHakb(item.hakb)).map((item) => item.code),
       ...submissionsByCode.keys(),
       ...draftsByCode.keys(),
       ...accessByCode.keys(),
     ]);
 
     const participants = [...codeSet]
-      .filter((code) => code && code !== ADMIN_CODE)
+      .filter((code) => code && !adminCodeSet.has(code))
       .sort()
       .map((code) => {
         const submission = submissionsByCode.get(code) || null;

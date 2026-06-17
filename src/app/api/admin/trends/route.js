@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 import { initialMenu } from '@/data/initialMenu';
+import { getAdminCodeSet, isAdminHakb, verifyAdminRequest } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-
-const ADMIN_CODE = 'JJ201562004';
-
-const isAdminRequest = (request) => request.headers.get('x-admin-code') === ADMIN_CODE;
 
 const getLatestByCode = (rows, codeKey, dateKey) => {
   const map = new Map();
@@ -68,7 +65,7 @@ const toSortedArray = (map, countKey) => (
   [...map.values()].sort((a, b) => b[countKey] - a[countKey] || a.menuTitle?.localeCompare(b.menuTitle || '', 'ko-KR') || 0)
 );
 
-const buildTrends = ({ submissionsByCode, draftsByCode, labelByCode }) => {
+const buildTrends = ({ submissionsByCode, draftsByCode, labelByCode, adminCodeSet }) => {
   const initialFlat = flattenMenuTree(initialMenu);
   const initialByKey = new Map(initialFlat.map((item) => [item.key, item]));
   const initialKeySet = new Set(initialByKey.keys());
@@ -86,7 +83,7 @@ const buildTrends = ({ submissionsByCode, draftsByCode, labelByCode }) => {
   let submittedCount = 0;
   let draftCount = 0;
 
-  [...codeSet].forEach((authCode) => {
+  [...codeSet].filter((authCode) => !adminCodeSet.has(authCode)).forEach((authCode) => {
     const submission = submissionsByCode.get(authCode);
     const draft = draftsByCode.get(authCode);
     const source = submission ? 'submission' : 'draft';
@@ -216,15 +213,15 @@ const buildTrends = ({ submissionsByCode, draftsByCode, labelByCode }) => {
 };
 
 export async function GET(request) {
-  if (!isAdminRequest(request)) {
-    return NextResponse.json({ ok: false, message: 'Forbidden.' }, { status: 403 });
+  if (!(await verifyAdminRequest(request, supabaseAdmin))) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized', message: 'Unauthorized' }, { status: 403 });
   }
 
   try {
-    const [authResult, submissionResult, draftResult] = await Promise.all([
+    const [authResult, submissionResult, draftResult, adminCodeSet] = await Promise.all([
       supabaseAdmin
         .from('auth_codes')
-        .select('code, label')
+        .select('code, label, hakb')
         .like('code', 'JJST%'),
       supabaseAdmin
         .from('submissions')
@@ -234,19 +231,24 @@ export async function GET(request) {
         .from('drafts')
         .select('auth_code, menu_data, updated_at')
         .order('updated_at', { ascending: false }),
+      getAdminCodeSet(supabaseAdmin),
     ]);
 
     if (authResult.error) console.error('[admin] trend auth code query error:', authResult.error);
     if (submissionResult.error) throw submissionResult.error;
     if (draftResult.error) throw draftResult.error;
 
-    const labelByCode = new Map((authResult.data || []).map((item) => [item.code, item.label || '']));
+    const labelByCode = new Map(
+      (authResult.data || [])
+        .filter((item) => !isAdminHakb(item.hakb))
+        .map((item) => [item.code, item.label || ''])
+    );
     const submissionsByCode = getLatestByCode(submissionResult.data, 'code', 'submitted_at');
     const draftsByCode = getLatestByCode(draftResult.data, 'auth_code', 'updated_at');
 
     return NextResponse.json({
       ok: true,
-      ...buildTrends({ submissionsByCode, draftsByCode, labelByCode }),
+      ...buildTrends({ submissionsByCode, draftsByCode, labelByCode, adminCodeSet }),
     });
   } catch (error) {
     console.error('[admin] trends failed:', error);
